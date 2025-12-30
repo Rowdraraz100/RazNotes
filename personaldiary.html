@@ -1,0 +1,1032 @@
+<!DOCTYPE html>
+<html lang="en" class="dark scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Personal Diary | Raz Notes</title>
+    <link rel="icon" type="image/png" href="Images/logo2.png">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        ash: { 100: '#f3f4f6', 200: '#e5e7eb', 800: '#1f2937', 900: '#111827' },
+                        humanity: { blue: '#3b82f6', cyan: '#06b6d4' }
+                    },
+                    animation: {
+                        'fade-in-up': 'fadeInUp 0.8s ease-out forwards',
+                        'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'pan-image': 'panImage 20s linear infinite alternate',
+                        'float': 'float 6s ease-in-out infinite',
+                    },
+                    keyframes: {
+                        fadeInUp: {
+                            '0%': { opacity: '0', transform: 'translateY(20px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0)' },
+                        },
+                        panImage: {
+                            '0%': { transform: 'scale(1.1) translate(0%, 0%)' },
+                            '100%': { transform: 'scale(1.2) translate(-2%, -2%)' },
+                        },
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0)' },
+                            '50%': { transform: 'translateY(-10px)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <style>
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #000000; }
+        ::-webkit-scrollbar-thumb { background: #4b5563; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #6b7280; }
+
+        /* Animation Classes */
+        .reveal {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 1s ease-out;
+        }
+        .reveal.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        /* Glowing Text */
+        .glow-text {
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+        }
+
+        /* --- SPOTLIGHT CARD EFFECT --- */
+        .vision-card {
+            position: relative;
+            overflow: hidden;
+            border-radius: 1rem;
+            /* No transform/rotate here to prevent dizziness */
+        }
+
+        /* The moving spotlight gradient */
+        .vision-card::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(
+                800px circle at var(--mouse-x, 50%) var(--mouse-y, 50%), 
+                rgba(255, 255, 255, 0.15), 
+                transparent 40%
+            );
+            z-index: 3;
+            opacity: 0;
+            transition: opacity 0.5s;
+            pointer-events: none;
+        }
+
+        .vision-card:hover::before {
+            opacity: 1;
+        }
+
+        /* Image styling */
+        .vision-card img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            /* Constant cinematic motion */
+            animation: panImage 20s linear infinite alternate;
+            filter: brightness(0.8);
+            transition: filter 0.5s ease;
+        }
+
+        .vision-card:hover img {
+            filter: brightness(1); /* Brighten on hover */
+        }
+
+        /* Text Content Slide Up */
+        .vision-content {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            padding: 1.5rem;
+            background: linear-gradient(to top, rgba(0,0,0,0.9), transparent);
+            transform: translateY(10px);
+            transition: transform 0.4s ease, opacity 0.4s ease;
+            z-index: 4;
+        }
+
+        .vision-card:hover .vision-content {
+            transform: translateY(0);
+        }
+
+        /* Play Button Pulse */
+        .play-btn {
+            box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.7);
+            animation: pulse-white 2s infinite;
+        }
+        @keyframes pulse-white {
+            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.7); }
+            70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(255, 255, 255, 0); }
+            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(255, 255, 255, 0); }
+        }
+
+        /* HumanityAI backdrop */
+        .humanity-bg {
+            background-image: url('Images/humanai.jpeg');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+        }
+
+        /* Loading Animation */
+        @keyframes loadingPulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.6; transform: scale(1.08); }
+        }
+        @keyframes fadeOutLoading {
+            0% { opacity: 1; visibility: visible; }
+            100% { opacity: 0; visibility: hidden; }
+        }
+        @keyframes orbitParticle {
+            0% { transform: rotate(0deg) translateX(100px); opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { transform: rotate(360deg) translateX(100px); opacity: 0; }
+        }
+        @keyframes scanLine {
+            0% { transform: translateY(-100%); opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { transform: translateY(100%); opacity: 0; }
+        }
+        .loading-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #1f2937 0%, #111827 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            animation: fadeOutLoading 0.8s ease-in-out 0.8s forwards;
+            cursor: pointer;
+        }
+        .loading-image {
+            animation: loadingPulse 2s ease-in-out infinite;
+            width: 120px;
+            height: 120px;
+        }
+    </style>
+</head>
+<body class="bg-white text-gray-900 dark:bg-black dark:text-white font-sans antialiased selection:bg-black selection:text-white dark:selection:bg-white dark:selection:text-black transition-colors duration-300">
+
+    <!-- Loading Screen -->
+    <div class="loading-container" id="loadingScreen" onclick="document.getElementById('loadingScreen').style.animation = 'none'; document.getElementById('loadingScreen').style.opacity = '0'; document.getElementById('loadingScreen').style.pointerEvents = 'none';">
+        <!-- AI Neural Particles -->
+        <div class="absolute inset-0 flex items-center justify-center overflow-hidden">
+            <div class="relative w-80 h-80">
+                <!-- Orbiting particles -->
+                <div class="absolute inset-0" style="animation: orbitParticle 4s linear infinite;">
+                    <div class="w-3 h-3 bg-blue-400 rounded-full absolute top-0 left-1/2 transform -translate-x-1/2 blur-sm"></div>
+                </div>
+                <div class="absolute inset-0" style="animation: orbitParticle 5s linear infinite 1.2s;">
+                    <div class="w-2 h-2 bg-cyan-400 rounded-full absolute top-0 left-1/2 transform -translate-x-1/2 blur-sm"></div>
+                </div>
+                <div class="absolute inset-0" style="animation: orbitParticle 6s linear infinite 2.4s;">
+                    <div class="w-2 h-2 bg-purple-400 rounded-full absolute top-0 left-1/2 transform -translate-x-1/2 blur-sm"></div>
+                </div>
+                <!-- Scan line effect -->
+                <div class="absolute inset-0 overflow-hidden rounded-full" style="animation: scanLine 3s ease-in-out infinite;">
+                    <div class="w-full h-1 bg-gradient-to-r from-transparent via-blue-400 to-transparent opacity-50"></div>
+                </div>
+            </div>
+        </div>
+        <!-- Content -->
+        <div class="flex flex-col items-center justify-center relative z-10">
+            <div class="relative mb-4">
+                <div class="absolute -inset-8 bg-blue-500/10 rounded-full blur-2xl animate-pulse-slow"></div>
+                <img src="Images/Logo.png" alt="Loading" class="loading-image relative" style="width: 140px; height: 140px; animation: loadingPulse 2s ease-in-out infinite;">
+            </div>
+            <p class="text-white text-3xl font-bold text-center leading-relaxed mt-8">Great things are on the way...<br>Keep shining ✨</p>
+            <div class="mt-6 flex items-center gap-2">
+                <span class="text-xs text-blue-300 uppercase tracking-widest font-bold">AI Initializing</span>
+                <div class="flex gap-1">
+                    <div class="w-2 h-2 bg-blue-400 rounded-full animate-pulse" style="animation-delay: 0s;"></div>
+                    <div class="w-2 h-2 bg-blue-400 rounded-full animate-pulse" style="animation-delay: 0.2s;"></div>
+                    <div class="w-2 h-2 bg-blue-400 rounded-full animate-pulse" style="animation-delay: 0.4s;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Password Protection Modal -->
+    <div id="passwordModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-[10000] flex items-center justify-center">
+        <div class="bg-black border-2 border-blue-500 rounded-2xl p-8 max-w-md w-full mx-4 shadow-2xl">
+            <div class="text-center mb-8">
+                <h2 class="text-3xl font-black text-white mb-2">🔐 Protected</h2>
+                <p class="text-gray-300 text-sm">Enter password to access Personal Diary</p>
+            </div>
+            <div class="space-y-4">
+                <input id="passwordInput" type="password" placeholder="Enter Password" class="w-full bg-gray-900 border border-blue-400 text-white px-4 py-3 rounded-lg focus:outline-none focus:border-blue-300 focus:ring-2 focus:ring-blue-500/50 transition-all" onkeypress="if(event.key==='Enter') checkPassword()">
+                <div id="errorMsg" class="text-red-400 text-sm font-semibold opacity-0 transition-opacity"></div>
+                <button onclick="checkPassword()" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded-lg transition-colors">
+                    Unlock Diary
+                </button>
+            </div>
+            <div class="mt-6 text-center">
+                <a href="index.html" class="text-blue-400 hover:text-blue-300 text-sm font-semibold underline">← Back to Home</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- NAVIGATION (For Personal Diary) -->
+    <nav class="fixed w-full z-50 bg-white/80 dark:bg-black/90 backdrop-blur border-b border-gray-200 dark:border-gray-800 py-4">
+        <div class="max-w-7xl mx-auto px-6 flex justify-between items-center">
+            <!-- BACK TO HOME LINK -->
+            <a href="index.html" class="flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white transition-colors">
+                <i data-lucide="arrow-left" class="w-5 h-5"></i>
+                <span class="font-bold uppercase tracking-widest text-sm">Back to Home</span>
+            </a>
+
+            <!-- Page Title -->
+            <span class="text-blue-500 text-xs font-bold uppercase tracking-widest border border-blue-500 px-3 py-1 rounded-full">Top Secret Diary</span>
+            
+            <!-- Mobile Menu Btn -->
+            <button id="diary-mobile-menu-btn" class="md:hidden text-black dark:text-white">
+                <i data-lucide="menu"></i>
+            </button>
+        </div>
+    </nav>
+
+    <!-- CONTENT CONTAINER -->
+    <main class="pt-20">
+        
+        <!-- Humanity AI with Calm Constellation Background -->
+        <section id="humanity-ai" class="py-24 humanity-bg text-gray-900 dark:text-white relative border-b border-gray-300 dark:border-gray-900 overflow-hidden">
+            
+            <!-- Image overlay + canvas animation -->
+            <div class="absolute inset-0 bg-white/75 dark:bg-black/70 backdrop-blur-[1px] z-0"></div>
+            <canvas id="humanity-canvas" class="absolute inset-0 w-full h-full pointer-events-none opacity-60 z-0"></canvas>
+            
+            <div class="max-w-7xl mx-auto px-6 relative z-10">
+                <div class="text-center mb-20 reveal">
+                    <div class="inline-flex items-center gap-2 border border-blue-500/30 bg-blue-500/10 px-4 py-1 rounded-full mb-6 backdrop-blur-sm">
+                        <div class="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
+                        <span class="text-xs font-bold text-blue-600 dark:text-blue-400 tracking-widest uppercase">The Foundation Company</span>
+                    </div>
+                    <h2 class="text-5xl md:text-7xl font-black mb-4 tracking-tighter">HUMANITY<span class="text-blue-600 dark:text-blue-500">AI</span></h2>
+                    <p class="text-gray-600 dark:text-gray-400 max-w-2xl mx-auto text-lg font-light">An ecosystem of companies dedicated to advancing human potential through Artificial General Intelligence.</p>
+                </div>
+
+                <!-- Vision & Mission -->
+                <div class="grid md:grid-cols-2 gap-8 mb-24 reveal">
+                    <div class="p-10 bg-white/80 dark:bg-black/50 backdrop-blur-md border border-gray-200 dark:border-gray-800 rounded-2xl relative overflow-hidden group hover:border-blue-500/50 transition-all duration-500 shadow-lg dark:shadow-none">
+                        <div class="absolute top-0 right-0 p-6 opacity-10 group-hover:opacity-20 transition-opacity"><i data-lucide="eye" class="w-32 h-32 text-blue-500"></i></div>
+                        <h3 class="text-2xl font-bold mb-4 flex items-center gap-3"><i data-lucide="eye" class="text-blue-600 dark:text-blue-500"></i> VISION</h3>
+                        <p class="text-gray-600 dark:text-gray-300 text-lg leading-relaxed">"Improve humanity & do something useful. Create AI products that help humanity live better. Moving towards AGI to empower the world with intelligence that expands knowledge."</p>
+                    </div>
+                    <div class="p-10 bg-white/80 dark:bg-black/50 backdrop-blur-md border border-gray-200 dark:border-gray-800 rounded-2xl relative overflow-hidden group hover:border-cyan-500/50 transition-all duration-500 shadow-lg dark:shadow-none">
+                        <div class="absolute top-0 right-0 p-6 opacity-10 group-hover:opacity-20 transition-opacity"><i data-lucide="target" class="w-32 h-32 text-cyan-500"></i></div>
+                        <h3 class="text-2xl font-bold mb-4 flex items-center gap-3"><i data-lucide="target" class="text-cyan-600 dark:text-cyan-500"></i> MISSION</h3>
+                        <p class="text-gray-600 dark:text-gray-300 text-lg leading-relaxed">"To build a world-class team and environment where work is play and mission. To be on the frontline of the AI revolution and build technologies that cure diseases and organize the universe's information."</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 10-Year Vision (Goals) -->
+        <section id="ten-year-vision" class="py-24 bg-white dark:bg-black text-gray-900 dark:text-white relative border-t border-gray-200 dark:border-gray-900">
+            <div class="max-w-7xl mx-auto px-6">
+                <div class="text-center mb-16 reveal">
+                    <span class="text-xs font-bold bg-gray-100 dark:bg-gray-900 px-3 py-1 text-gray-600 dark:text-gray-400 uppercase tracking-widest border border-gray-300 dark:border-gray-800 rounded-full">2026 - 2035</span>
+                    <h2 class="text-4xl md:text-5xl font-black mt-4 mb-4 uppercase tracking-tight">10-Year Vision</h2>
+                    <p class="text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">Specific targets and detailed breakdown of the 6 pillars of my empire.</p>
+                </div>
+                
+                <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8 reveal">
+                    <!-- Cards -->
+                    <div class="bg-gray-50 dark:bg-gray-900 p-8 border border-gray-200 dark:border-gray-800 hover:border-blue-600 dark:hover:border-blue-500 transition-all duration-300 rounded-xl group relative overflow-hidden flex flex-col h-full">
+                        <div class="absolute top-0 right-0 p-6 opacity-5 group-hover:opacity-10 transition-opacity"><i data-lucide="building-2" class="w-24 h-24"></i></div>
+                        <div class="mb-6"><span class="bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 text-xs font-bold px-3 py-1 rounded uppercase tracking-wider">The Mothership</span></div>
+                        <h3 class="text-2xl font-bold mb-2 uppercase">1. HumanityAI</h3>
+                        <p class="text-gray-600 dark:text-gray-400 text-sm leading-relaxed mb-6 flex-grow">The holding company that funds and directs all subsidiaries. It will serve as the engine for solving humanity's biggest problems.</p>
+                        <div class="border-t border-gray-200 dark:border-gray-800 pt-4 mt-auto"><div class="flex items-center justify-between mb-2"><span class="text-xs font-bold text-gray-500 uppercase">Target Valuation</span><span class="text-sm font-bold text-green-600 dark:text-green-400">$1 Billion+</span></div></div>
+                    </div>
+                    <div class="bg-gray-50 dark:bg-gray-900 p-8 border border-gray-200 dark:border-gray-800 hover:border-blue-600 dark:hover:border-blue-500 transition-all duration-300 rounded-xl group relative overflow-hidden flex flex-col h-full">
+                        <div class="absolute top-0 right-0 p-6 opacity-5 group-hover:opacity-10 transition-opacity"><i data-lucide="code-2" class="w-24 h-24"></i></div>
+                        <div class="mb-6"><span class="bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 text-xs font-bold px-3 py-1 rounded uppercase tracking-wider">EdTech</span></div>
+                        <h3 class="text-2xl font-bold mb-2 uppercase">2. BinaryAI</h3>
+                        <p class="text-gray-600 dark:text-gray-400 text-sm leading-relaxed mb-6 flex-grow">An AI-powered adaptive learning platform. It replaces traditional CS degrees by offering a hyper-personalized AI tutor.</p>
+                        <div class="border-t border-gray-200 dark:border-gray-800 pt-4 mt-auto"><div class="flex items-center justify-between mb-2"><span class="text-xs font-bold text-gray-500 uppercase">Goal</span><span class="text-sm font-bold text-purple-600 dark:text-purple-400">1M+ Engineers</span></div></div>
+                    </div>
+                    <div class="bg-gray-50 dark:bg-gray-900 p-8 border border-gray-200 dark:border-gray-800 hover:border-blue-600 dark:hover:border-blue-500 transition-all duration-300 rounded-xl group relative overflow-hidden flex flex-col h-full">
+                        <div class="absolute top-0 right-0 p-6 opacity-5 group-hover:opacity-10 transition-opacity"><i data-lucide="youtube" class="w-24 h-24"></i></div>
+                        <div class="mb-6"><span class="bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 text-xs font-bold px-3 py-1 rounded uppercase tracking-wider">Media</span></div>
+                        <h3 class="text-2xl font-bold mb-2 uppercase">3. Media Empire</h3>
+                        <p class="text-gray-600 dark:text-gray-400 text-sm leading-relaxed mb-6 flex-grow">Documenting the journey of building the future. A YouTube channel and Podcast network interviewing the world's smartest.</p>
+                        <div class="border-t border-gray-200 dark:border-gray-800 pt-4 mt-auto"><div class="flex items-center justify-between mb-2"><span class="text-xs font-bold text-gray-500 uppercase">Audience</span><span class="text-sm font-bold text-red-600 dark:text-red-400">10M+ Subs</span></div></div>
+                    </div>
+                    <div class="bg-gray-50 dark:bg-gray-900 p-8 border border-gray-200 dark:border-gray-800 hover:border-blue-600 dark:hover:border-blue-500 transition-all duration-300 rounded-xl group relative overflow-hidden flex flex-col h-full">
+                        <div class="absolute top-0 right-0 p-6 opacity-5 group-hover:opacity-10 transition-opacity"><i data-lucide="search" class="w-24 h-24"></i></div>
+                        <div class="mb-6"><span class="bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 text-xs font-bold px-3 py-1 rounded uppercase tracking-wider">Knowledge</span></div>
+                        <h3 class="text-2xl font-bold mb-2 uppercase">4. Universal Search</h3>
+                        <p class="text-gray-600 dark:text-gray-400 text-sm leading-relaxed mb-6 flex-grow">A conversational search engine designed to understand complex queries about the universe. Organizing human knowledge.</p>
+                        <div class="border-t border-gray-200 dark:border-gray-800 pt-4 mt-auto"><div class="flex items-center justify-between mb-2"><span class="text-xs font-bold text-gray-500 uppercase">Tech</span><span class="text-sm font-bold text-green-600 dark:text-green-400">LLMs + RAG</span></div></div>
+                    </div>
+                    <div class="bg-gray-50 dark:bg-gray-900 p-8 border border-gray-200 dark:border-gray-800 hover:border-blue-600 dark:hover:border-blue-500 transition-all duration-300 rounded-xl group relative overflow-hidden flex flex-col h-full">
+                        <div class="absolute top-0 right-0 p-6 opacity-5 group-hover:opacity-10 transition-opacity"><i data-lucide="stethoscope" class="w-24 h-24"></i></div>
+                        <div class="mb-6"><span class="bg-teal-100 dark:bg-teal-900/30 text-teal-600 dark:text-teal-400 text-xs font-bold px-3 py-1 rounded uppercase tracking-wider">Health</span></div>
+                        <h3 class="text-2xl font-bold mb-2 uppercase">5. Medical AI</h3>
+                        <p class="text-gray-600 dark:text-gray-400 text-sm leading-relaxed mb-6 flex-grow">Deploying advanced Computer Vision and ML models to detect cancer early, discover new drugs, and extend healthy human lifespan.</p>
+                        <div class="border-t border-gray-200 dark:border-gray-800 pt-4 mt-auto"><div class="flex items-center justify-between mb-2"><span class="text-xs font-bold text-gray-500 uppercase">Impact</span><span class="text-sm font-bold text-teal-600 dark:text-teal-400">Save Lives</span></div></div>
+                    </div>
+                    <div class="bg-gray-50 dark:bg-gray-900 p-8 border border-gray-200 dark:border-gray-800 hover:border-blue-600 dark:hover:border-blue-500 transition-all duration-300 rounded-xl group relative overflow-hidden flex flex-col h-full">
+                        <div class="absolute top-0 right-0 p-6 opacity-5 group-hover:opacity-10 transition-opacity"><i data-lucide="microscope" class="w-24 h-24"></i></div>
+                        <div class="mb-6"><span class="bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 text-xs font-bold px-3 py-1 rounded uppercase tracking-wider">Research</span></div>
+                        <h3 class="text-2xl font-bold mb-2 uppercase">6. Research Labs</h3>
+                        <p class="text-gray-600 dark:text-gray-400 text-sm leading-relaxed mb-6 flex-grow">A dedicated lab for pure research. Building the "Jarvis" (AGI). Exploring consciousness, robotics, and energy systems.</p>
+                        <div class="border-t border-gray-200 dark:border-gray-800 pt-4 mt-auto"><div class="flex items-center justify-between mb-2"><span class="text-xs font-bold text-gray-500 uppercase">Goal</span><span class="text-sm font-bold text-orange-600 dark:text-orange-400">AGI</span></div></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- THE GRAND MASTER PLAN & AFFIRMATIONS -->
+        <section id="grand-plan" class="py-24 bg-gradient-to-br from-gray-50 to-gray-200 dark:from-[#050505] dark:to-[#111] text-black dark:text-white relative border-t border-gray-300 dark:border-gray-800">
+            <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500"></div>
+            
+            <div class="max-w-4xl mx-auto px-6">
+                <!-- Header -->
+                <div class="text-center mb-24 reveal">
+                    <h2 class="text-5xl md:text-7xl font-black mb-6 uppercase tracking-tight leading-none">The Grand <br><span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-400 dark:to-purple-400">Master Plan</span></h2>
+                    <p class="text-xl text-gray-600 dark:text-gray-300 font-medium italic">"10 Years of Dedication, Obsession & Commitment."</p>
+                </div>
+
+                <!-- 1. THE TWO PHASES -->
+                <div class="space-y-12 mb-24 reveal">
+                    <div class="border-l-4 border-blue-500 pl-8 py-2">
+                        <span class="text-blue-600 dark:text-blue-400 font-bold tracking-widest text-sm uppercase mb-2 block">Phase 1 (2025 - 2028/2030)</span>
+                        <h3 class="text-3xl font-bold mb-4">The Foundation & Preparation</h3>
+                        <p class="text-gray-700 dark:text-gray-300 leading-relaxed">
+                            In these 3-5 Years, I will build my Foundation skills. Build Skills, get <strong>Job offer from big tech company like Google, OpenAI</strong> in AI & ML field, Gain experiences, Learn from their Start-Up. Build Small Start-Up (Build AI online Learning Platform) First step to my Foundation Company, Build Content Creation Business, Go abroad and <strong>find the love of my life.. Become married.</strong>
+                        </p>
+                    </div>
+
+                    <div class="border-l-4 border-purple-500 pl-8 py-2">
+                        <span class="text-purple-600 dark:text-purple-400 font-bold tracking-widest text-sm uppercase mb-2 block">Phase 2 (2029/30 - Beyond)</span>
+                        <h3 class="text-3xl font-bold mb-4">The Expansion & Empire</h3>
+                        <p class="text-gray-700 dark:text-gray-300 leading-relaxed">
+                            I Will go all in to build my <strong>Foundation Company(Humanity AI)</strong> & Grow Content Creation Business. Do something bold. I will Go all in to build my own AI & ML startup company that will revolutionize education, medical industry & do something BOLD & BIG. Make it a Million-Billion Dollar Company.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- 2. THE LEARNING MACHINE (SKILLS) -->
+                <div class="mb-24 reveal">
+                    <h3 class="text-2xl font-black uppercase mb-8 border-b border-gray-300 dark:border-gray-700 pb-4">I. The Learning Machine</h3>
+                    <p class="text-lg text-gray-700 dark:text-gray-300 mb-8 leading-relaxed">
+                        To achieve this vision, I will learn & become the most smartest & knowledgeable person in the AI & ML field. (10,000+ hour to this field. Become obsessed) Learn as much as possible. I will Expand my knowledge & consciousness & become curious about the world(Become a Learning Machine). There’s no end to knowledge.
+                    </p>
+                    <p class="text-lg text-gray-700 dark:text-gray-300 mb-8 font-medium">
+                        I am committed to expand my skills on a regular basis. Learn something new every single day. I will Must build these skills in 10 years:
+                    </p>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="bg-gray-100 dark:bg-gray-900 p-4 rounded-lg border-l-4 border-green-500"><h4 class="font-bold">Programming & CS</h4><p class="text-sm text-gray-600 dark:text-gray-400">Multiple Languages, DSA, Web & App Dev, Technology.</p></div>
+                        <div class="bg-gray-100 dark:bg-gray-900 p-4 rounded-lg border-l-4 border-blue-500"><h4 class="font-bold">AI & ML Mastery</h4><p class="text-sm text-gray-600 dark:text-gray-400">Deep Learning, LLM, Computer Vision, Gen AI.</p></div>
+                        <div class="bg-gray-100 dark:bg-gray-900 p-4 rounded-lg border-l-4 border-red-500"><h4 class="font-bold">Content & Brand</h4><p class="text-sm text-gray-600 dark:text-gray-400">YouTubing, Video Editing, Podcasting, Social Media.</p></div>
+                        <div class="bg-gray-100 dark:bg-gray-900 p-4 rounded-lg border-l-4 border-yellow-500"><h4 class="font-bold">Business & Leadership</h4><p class="text-sm text-gray-600 dark:text-gray-400">Marketing, Start-Up Building, Hiring, Team Building.</p></div>
+                        <div class="bg-gray-100 dark:bg-gray-900 p-4 rounded-lg border-l-4 border-purple-500"><h4 class="font-bold">Life Mastery</h4><p class="text-sm text-gray-600 dark:text-gray-400">Communication, Money Making, Investing, Personal Dev.</p></div>
+                    </div>
+                </div>
+
+                <!-- 3. EXECUTION ROADMAP (TIMELINE) -->
+                <div class="mb-24 reveal">
+                    <h3 class="text-2xl font-black uppercase mb-12 border-b border-gray-300 dark:border-gray-700 pb-4">II. The Execution Path</h3>
+                    
+                    <div class="relative border-l-2 border-dashed border-gray-400 dark:border-gray-600 ml-4 space-y-16">
+                        <!-- Step 1 -->
+                        <div class="relative pl-10">
+                            <div class="absolute -left-[9px] top-0 w-4 h-4 bg-blue-600 rounded-full"></div>
+                            <h4 class="text-xl font-bold uppercase mb-2">Build Small Startup (BinaryAI)</h4>
+                            <p class="text-gray-600 dark:text-gray-400">First, In 3/5 Years(2026-2028/2030). Make it best platform to learn Coding & AI, ML. Implement AI Tutor, Chatbot. Build a Beautiful Website & App (User Friendly). Write blogs & concepts. Hire teachers.</p>
+                        </div>
+                        <!-- Step 2 -->
+                        <div class="relative pl-10">
+                            <div class="absolute -left-[9px] top-0 w-4 h-4 bg-gray-400 dark:bg-gray-600 rounded-full"></div>
+                            <h4 class="text-xl font-bold uppercase mb-2">Projects & Research</h4>
+                            <p class="text-gray-600 dark:text-gray-400">I will Make many exceptional, small & big projects & upload them on Git-hub and update LinkedIn. I will Research, Publish Papers on AI & ML.</p>
+                        </div>
+                        <!-- Step 3 -->
+                        <div class="relative pl-10">
+                            <div class="absolute -left-[9px] top-0 w-4 h-4 bg-gray-400 dark:bg-gray-600 rounded-full"></div>
+                            <h4 class="text-xl font-bold uppercase mb-2">Content & Network</h4>
+                            <p class="text-gray-600 dark:text-gray-400">Create Podcast. Interview inspiring people. Give seminers and speech on world class universities & tedx talks. Create a personal brand in Social Media.</p>
+                        </div>
+                        <!-- Step 4 -->
+                        <div class="relative pl-10">
+                            <div class="absolute -left-[9px] top-0 w-4 h-4 bg-gray-400 dark:bg-gray-600 rounded-full"></div>
+                            <h4 class="text-xl font-bold uppercase mb-2">Masters & Big Tech Job</h4>
+                            <p class="text-gray-600 dark:text-gray-400">Get Masters/PhD in AI & ML (Optional). Get Internship/Job offer from BIG ai company like Google, Open-AI to learn from their startup.</p>
+                        </div>
+                        <!-- Step 5 -->
+                        <div class="relative pl-10">
+                            <div class="absolute -left-[9px] top-0 w-4 h-4 bg-green-500 rounded-full shadow-[0_0_10px_rgba(34,197,94,0.8)]"></div>
+                            <h4 class="text-xl font-bold uppercase mb-2 text-green-600 dark:text-green-400">The Foundation Company</h4>
+                            <p class="text-gray-600 dark:text-gray-400">After all insights, GO ALL IN. Build Humanity AI. Revolutionize education & medical industry. Make it a Million-Billion Dollar Company. Become Millionaire.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 4. THE DREAM LIFE -->
+                <div class="mb-24 reveal">
+                    <h3 class="text-2xl font-black uppercase mb-8 border-b border-gray-300 dark:border-gray-700 pb-4">III. The Rewards</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="bg-black text-white p-6 rounded-xl shadow-xl transform rotate-1 hover:rotate-0 transition-transform">
+                            <div class="flex items-center gap-3 mb-4"><i data-lucide="award" class="w-8 h-8 text-yellow-400"></i><h4 class="text-2xl font-bold uppercase">Recognition</h4></div>
+                            <p>I will feature on <strong>Forbes 30 under 30</strong> & Top Magazines. I will give speech & seminars on abroad & Bangladesh’s Top universities.</p>
+                        </div>
+                        <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 p-6 rounded-xl shadow-xl transform -rotate-1 hover:rotate-0 transition-transform">
+                            <div class="flex items-center gap-3 mb-4"><i data-lucide="heart" class="w-8 h-8 text-red-500"></i><h4 class="text-2xl font-bold uppercase">Personal Life</h4></div>
+                            <p class="text-gray-600 dark:text-gray-300">Find the love of my life & marry one of the most beautiful, kind hearted & supportive girl. Make my family proud. Buy/Build a Beautiful Dream House.</p>
+                        </div>
+                        <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 p-6 rounded-xl shadow-xl">
+                            <div class="flex items-center gap-3 mb-4"><i data-lucide="car" class="w-8 h-8 text-blue-500"></i><h4 class="text-2xl font-bold uppercase">Material Dreams</h4></div>
+                            <p class="text-gray-600 dark:text-gray-300">Buy a beautiful car: Mercedes Benz & other material things possible. I will be financially independent.</p>
+                        </div>
+                        <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 p-6 rounded-xl shadow-xl">
+                            <div class="flex items-center gap-3 mb-4"><i data-lucide="coins" class="w-8 h-8 text-yellow-500"></i><h4 class="text-2xl font-bold uppercase">Freedom</h4></div>
+                            <p class="text-gray-600 dark:text-gray-300">Earn enough money so that I will be able to do whatever I want to do with my life. Invest money for future startups.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 5. THE OATH (CONTRACT) -->
+                <div class="bg-black text-white p-10 md:p-16 rounded-3xl shadow-2xl text-center relative overflow-hidden reveal">
+                    <div class="absolute top-0 left-0 w-full h-full bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] opacity-20"></div>
+                    <div class="relative z-10">
+                        <i data-lucide="flame" class="w-16 h-16 mx-auto mb-6 text-orange-500 animate-pulse-slow"></i>
+                        <h3 class="text-3xl md:text-4xl font-black uppercase mb-8 glow-text">The Oath of Persistence</h3>
+                        <p class="text-lg md:text-xl font-serif italic leading-relaxed mb-8 text-gray-300">
+                            "I know that, I’ve the ability to achieve this goal.. therefore I demand of myself Persistent, Hard Work (10 Years of Dedication & Commitment) & Continuous action toward it’s achievement. I will sacrifice short term pleasure to achieve this vision & I promise to myself that I will never ever give up until I achieve this goal. Period."
+                        </p>
+                        <p class="text-base text-gray-400 font-mono mb-12">
+                            "A journey of a thousand miles begin with a single step & To get through the hardest journey we need take only one step at a time, but we must keep on stepping."
+                        </p>
+                        <div class="inline-block border-t border-b border-white py-4 px-8">
+                            <span class="block text-sm uppercase tracking-[0.3em] mb-2">Signed By</span>
+                            <span class="text-2xl font-signature font-bold">Rowdraraz Paul</span>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- ======================================================= -->
+        <!-- 3 YEARS GOALS & ACTION PLAN -->
+        <!-- ======================================================= -->
+        <section id="three-year-plan" class="py-24 bg-white dark:bg-[#080808] text-gray-900 dark:text-white relative border-t border-gray-200 dark:border-gray-800">
+            <div class="max-w-5xl mx-auto px-6">
+                
+                <!-- Header -->
+                <div class="text-center mb-20 reveal">
+                    <span class="text-xs font-bold bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 px-3 py-1 rounded-full uppercase tracking-widest border border-red-200 dark:border-red-800">The Grind Phase</span>
+                    <h2 class="text-4xl md:text-6xl font-black mt-6 mb-6 uppercase tracking-tight">3 Years Goals & Action Plan <br><span class="text-gray-400 dark:text-gray-600">(2026 - 2028)</span></h2>
+                    <p class="text-xl text-gray-600 dark:text-gray-400 font-medium italic">"3 Years of Insane Hard Work, Sacrifice & Obsession."</p>
+                </div>
+
+                <!-- 1. GOALS LIST -->
+                <div class="mb-20 reveal">
+                    <h3 class="text-2xl font-black uppercase mb-8 flex items-center gap-3"><i data-lucide="flag" class="text-red-500"></i> The Objectives</h3>
+                    <div class="bg-gray-50 dark:bg-gray-900 p-8 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-lg">
+                        <ul class="space-y-6">
+                            <li class="flex items-start gap-4">
+                                <div class="mt-1 min-w-[20px]"><i data-lucide="rocket" class="text-blue-500 w-5 h-5"></i></div>
+                                <div>
+                                    <h4 class="font-bold text-lg">Build AI EdTech StartUp (Side Hustle)</h4>
+                                    <p class="text-gray-600 dark:text-gray-400 text-sm leading-relaxed mt-1">
+                                        Build BinaryAI: AI based Online Learning Platform (Python, AI & ML). First step to Foundation Company. Features: AI tutor, Bite sized learning, Streaks. Gamify learning. Build World Class team.
+                                        Also work on Search engine AI. Work 16 hours/day. Become obsessed.
+                                    </p>
+                                </div>
+                            </li>
+                            <li class="flex items-start gap-4">
+                                <div class="mt-1 min-w-[20px]"><i data-lucide="briefcase" class="text-purple-500 w-5 h-5"></i></div>
+                                <div>
+                                    <h4 class="font-bold text-lg">Top Tech Job / Higher Studies</h4>
+                                    <p class="text-gray-600 dark:text-gray-400 text-sm leading-relaxed mt-1">
+                                        Get job/intern from Google, OpenAI, Meta in AI/ML (within 2028) OR Get Masters/PhD in top university (USA) + Go abroad.
+                                    </p>
+                                </div>
+                            </li>
+                            <li class="flex items-start gap-4">
+                                <div class="mt-1 min-w-[20px]"><i data-lucide="youtube" class="text-red-500 w-5 h-5"></i></div>
+                                <div>
+                                    <h4 class="font-bold text-lg">Content & Brand</h4>
+                                    <p class="text-gray-600 dark:text-gray-400 text-sm leading-relaxed mt-1">
+                                        Grow YouTube & Content Business. Start Podcast. Personal Website. Teach Coding, AI/ML. Create Personal Brand.
+                                    </p>
+                                </div>
+                            </li>
+                            <li class="flex items-start gap-4">
+                                <div class="mt-1 min-w-[20px]"><i data-lucide="heart" class="text-pink-500 w-5 h-5"></i></div>
+                                <div>
+                                    <h4 class="font-bold text-lg">Love & Life</h4>
+                                    <p class="text-gray-600 dark:text-gray-400 text-sm leading-relaxed mt-1">
+                                        Fall in love & Marry (2028/29). Become financially independent (Crorepoti).
+                                    </p>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- 2. HABITS -->
+                <div class="mb-20 reveal">
+                    <h3 class="text-2xl font-black uppercase mb-8 flex items-center gap-3"><i data-lucide="zap" class="text-yellow-500"></i> The Habits</h3>
+                    <div class="grid md:grid-cols-2 gap-6">
+                        <div class="bg-white dark:bg-gray-900 p-6 border-l-4 border-blue-500 shadow-sm"><h4 class="font-bold uppercase mb-2">Visualization</h4><p class="text-sm text-gray-600 dark:text-gray-400">Review & Affirm goals regularly. Meditation.</p></div>
+                        <div class="bg-white dark:bg-gray-900 p-6 border-l-4 border-purple-500 shadow-sm"><h4 class="font-bold uppercase mb-2">Master AI/ML</h4><p class="text-sm text-gray-600 dark:text-gray-400">Research, Projects. Be Exceptional in ONE skill.</p></div>
+                        <div class="bg-white dark:bg-gray-900 p-6 border-l-4 border-green-500 shadow-sm"><h4 class="font-bold uppercase mb-2">Reading</h4><p class="text-sm text-gray-600 dark:text-gray-400">Read voraciously (Tech, Business, Bio).</p></div>
+                        <div class="bg-white dark:bg-gray-900 p-6 border-l-4 border-red-500 shadow-sm"><h4 class="font-bold uppercase mb-2">Coding</h4><p class="text-sm text-gray-600 dark:text-gray-400">Code everyday. Solve 300-500+ Leetcode/Codeforces.</p></div>
+                    </div>
+                </div>
+
+                <!-- 3. THE SYSTEM (MISSIONS) -->
+                <div class="reveal">
+                    <h3 class="text-2xl font-black uppercase mb-12 flex items-center gap-3"><i data-lucide="map" class="text-green-500"></i> The System: Mission by Mission</h3>
+                    
+                    <div class="relative border-l-2 border-gray-300 dark:border-gray-700 ml-6 space-y-20">
+                        
+                        <!-- MISSION 1 -->
+                        <div class="relative pl-12">
+                            <div class="absolute -left-[11px] top-0 w-6 h-6 bg-white dark:bg-black border-4 border-blue-600 rounded-full"></div>
+                            <span class="text-blue-600 font-bold uppercase tracking-widest text-xs mb-2 block">Mission 1 (Jan - Aug 2026)</span>
+                            <h4 class="text-3xl font-black mb-6">Self Transformation</h4>
+                            <div class="space-y-4 text-gray-700 dark:text-gray-300">
+                                <p><strong>1. Python Expert:</strong> Make Small Projects. Solve real problems.</p>
+                                <p><strong>2. Habits:</strong> Eliminate bad habits. Spiritual Journey.</p>
+                                <p><strong>3. AI Foundation (9 Months):</strong> Basics → Python → Math → ML → DL. Coursera + YouTube.</p>
+                                <p><strong>4. Master DSA:</strong> Solve 300+ (Target 500) Leetcode. Striver's AZ Sheet. Daily Streak. Contests.</p>
+                                <p class="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg mt-4 border border-blue-100 dark:border-blue-900"><span class="font-bold text-blue-700 dark:text-blue-300">Milestone:</span> Start YouTube Channel (June/July). Start Teaching online.</p>
+                            </div>
+                        </div>
+
+                        <!-- MISSION 2 -->
+                        <div class="relative pl-12">
+                            <div class="absolute -left-[11px] top-0 w-6 h-6 bg-white dark:bg-black border-4 border-purple-600 rounded-full"></div>
+                            <span class="text-purple-600 font-bold uppercase tracking-widest text-xs mb-2 block">Mission 2 (Sep 2026 - Aug 2027)</span>
+                            <h4 class="text-3xl font-black mb-6">Deep Dive & Startup</h4>
+                            <div class="space-y-4 text-gray-700 dark:text-gray-300">
+                                <p><strong>1. Expand AI:</strong> Research, Papers, Competitions.</p>
+                                <p><strong>2. Content & Startup:</strong> Grow YouTube. Teach Python/AI. Learn Video Editing.</p>
+                                <p><strong>3. Full Stack Web:</strong> Build BinaryAI Website parallelly. Integrate AI.</p>
+                                <div class="grid md:grid-cols-2 gap-6 mt-6">
+                                    <div class="bg-gray-100 dark:bg-gray-800 p-4 rounded-lg"><h5 class="font-bold uppercase text-sm mb-2 text-gray-500">Track 1: Higher Studies</h5><p class="text-sm">Deepen AI. Research. IELTS/GRE.</p></div>
+                                    <div class="bg-gray-100 dark:bg-gray-800 p-4 rounded-lg"><h5 class="font-bold uppercase text-sm mb-2 text-gray-500">Track 2: Job</h5><p class="text-sm">Master DSA (500+). Projects. Fundamentals.</p></div>
+                                </div>
+                                <p class="bg-purple-50 dark:bg-purple-900/20 p-4 rounded-lg mt-4 border border-purple-100 dark:border-purple-900"><span class="font-bold text-purple-700 dark:text-purple-300">Milestone:</span> Crack Job / Scholarship by July 2027.</p>
+                            </div>
+                        </div>
+
+                        <!-- MISSION 3 -->
+                        <div class="relative pl-12">
+                            <div class="absolute -left-[11px] top-0 w-6 h-6 bg-white dark:bg-black border-4 border-green-600 rounded-full"></div>
+                            <span class="text-green-600 font-bold uppercase tracking-widest text-xs mb-2 block">Mission 3 (Late 2027 - 2028)</span>
+                            <h4 class="text-3xl font-black mb-6">Execution & Empire</h4>
+                            <div class="space-y-4 text-gray-700 dark:text-gray-300">
+                                <p><strong>1. Startup Scaling:</strong> Grow platform. Find Co-founder. Build App. Gamify.</p>
+                                <p><strong>2. MAANG Prep:</strong> Crack Top Tech Company (Google/Meta) within 2028.</p>
+                                <p><strong>3. Life:</strong> Fall in love & Marry (2028/29). Become Millionaire.</p>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- ======================================================= -->
+        <!-- NEW: THE VISION BOARD (VISUALIZATION GALLERY) -->
+        <!-- ======================================================= -->
+        <section id="vision-board" class="py-24 bg-white dark:bg-black text-gray-900 dark:text-white relative border-t border-gray-300 dark:border-gray-800 overflow-hidden">
+            
+            <!-- Canvas for Golden Dust -->
+            <canvas id="vision-canvas" class="absolute inset-0 w-full h-full pointer-events-none opacity-100 z-0"></canvas>
+
+            <div class="max-w-7xl mx-auto px-6 relative z-10">
+                <!-- Header -->
+                <div class="text-center mb-16 reveal">
+                    <span class="text-xs font-bold bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 px-3 py-1 rounded-full uppercase tracking-widest border border-green-200 dark:border-green-800">My Reality</span>
+                    <h2 class="text-4xl md:text-5xl font-black mt-4 mb-4 uppercase tracking-tight">The Vision Board</h2>
+                    <p class="text-gray-500 dark:text-gray-400 max-w-2xl mx-auto">"If you can see it in your mind, you will hold it in your hand."</p>
+                </div>
+
+                <!-- Gallery Grid -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 reveal">
+                    
+                    <!-- Vision 1 -->
+                    <div class="vision-card group cursor-pointer shadow-xl">
+                        <img src="VisionBoard/V00.jpg" alt="Vision 00">
+                        <div class="vision-content">
+                            <span class="text-xs font-bold text-blue-400 uppercase tracking-widest mb-1 block">Dream</span>
+                            <h3 class="text-2xl font-bold text-white mb-2">Success & Recognition</h3>
+                            <p class="text-gray-300 text-sm">I will achieve global recognition and inspire millions.</p>
+                        </div>
+                        <div class="play-icon-wrapper absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
+                            <div class="bg-white/20 backdrop-blur-md p-4 rounded-full border border-white/30 play-btn">
+                                <i data-lucide="play" class="w-6 h-6 text-white fill-white"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Vision 2 -->
+                    <div class="vision-card group cursor-pointer shadow-xl">
+                        <img src="VisionBoard/V01.jpg" alt="Vision 01">
+                        <div class="vision-content">
+                            <span class="text-xs font-bold text-green-400 uppercase tracking-widest mb-1 block">Dream</span>
+                            <h3 class="text-2xl font-bold text-white mb-2">Innovation Hub</h3>
+                            <p class="text-gray-300 text-sm">I will build a world-class tech company from the ground up.</p>
+                        </div>
+                    </div>
+
+                    <!-- Vision 3 -->
+                    <div class="vision-card group cursor-pointer shadow-xl">
+                        <img src="VisionBoard/V03.jpg" alt="Vision 03">
+                        <div class="vision-content">
+                            <span class="text-xs font-bold text-blue-400 uppercase tracking-widest mb-1 block">Dream</span>
+                            <h3 class="text-2xl font-bold text-white mb-2">TEDx Speaking</h3>
+                            <p class="text-gray-300 text-sm">I will deliver powerful talks on TEDx stages worldwide.</p>
+                        </div>
+                    </div>
+
+                    <!-- Vision 4 -->
+                    <div class="vision-card group cursor-pointer shadow-xl">
+                        <img src="VisionBoard/V04.jpg" alt="Vision 04">
+                        <div class="vision-content">
+                            <span class="text-xs font-bold text-yellow-400 uppercase tracking-widest mb-1 block">Dream</span>
+                            <h3 class="text-2xl font-bold text-white mb-2">Luxury Lifestyle</h3>
+                            <p class="text-gray-300 text-sm">I will own luxury vehicles and travel the world in style.</p>
+                        </div>
+                    </div>
+
+                    <!-- Vision 5 -->
+                    <div class="vision-card group cursor-pointer shadow-xl">
+                        <img src="VisionBoard/V5.jpg" alt="Vision 5">
+                        <div class="vision-content">
+                            <span class="text-xs font-bold text-pink-400 uppercase tracking-widest mb-1 block">Dream</span>
+                            <h3 class="text-2xl font-bold text-white mb-2">Family & Love</h3>
+                            <p class="text-gray-300 text-sm">I will build a loving family and create lasting memories.</p>
+                        </div>
+                    </div>
+
+                    <!-- Vision 6 -->
+                    <div class="vision-card group cursor-pointer shadow-xl">
+                        <img src="VisionBoard/V06.jpg" alt="Vision 06">
+                        <div class="vision-content">
+                            <span class="text-xs font-bold text-green-400 uppercase tracking-widest mb-1 block">Dream</span>
+                            <h3 class="text-2xl font-bold text-white mb-2">Financial Freedom</h3>
+                            <p class="text-gray-300 text-sm">I will achieve wealth and financial independence by 2030.</p>
+                        </div>
+                        <div class="play-icon-wrapper absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
+                            <div class="bg-white/20 backdrop-blur-md p-4 rounded-full border border-white/30 play-btn">
+                                <i data-lucide="play" class="w-6 h-6 text-white fill-white"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Vision 7 -->
+                    <div class="vision-card group cursor-pointer shadow-xl">
+                        <img src="VisionBoard/V07.jpg" alt="Vision 07">
+                        <div class="vision-content">
+                            <span class="text-xs font-bold text-purple-400 uppercase tracking-widest mb-1 block">Dream</span>
+                            <h3 class="text-2xl font-bold text-white mb-2">Global Impact</h3>
+                            <p class="text-gray-300 text-sm">I will create products that positively impact billions of lives.</p>
+                        </div>
+                    </div>
+
+                    <!-- Vision 8 -->
+                    <div class="vision-card group cursor-pointer shadow-xl">
+                        <img src="VisionBoard/V09.jpg" alt="Vision 09">
+                        <div class="vision-content">
+                            <span class="text-xs font-bold text-indigo-400 uppercase tracking-widest mb-1 block">Dream</span>
+                            <h3 class="text-2xl font-bold text-white mb-2">Legacy Building</h3>
+                            <p class="text-gray-300 text-sm">I will build a legacy that inspires generations to come.</p>
+                        </div>
+                    </div>
+
+                </div>
+                
+                <!-- Manifesto Text Upgrade -->
+                <div class="mt-20 bg-gray-50 dark:bg-gray-900 border-l-4 border-black dark:border-white p-8 reveal">
+                    <h3 class="text-2xl font-black uppercase mb-4">Personal Manifesto</h3>
+                    <ul class="space-y-4 text-gray-700 dark:text-gray-300">
+                        <li class="flex items-center gap-3"><i data-lucide="check-circle" class="w-5 h-5 text-blue-500"></i> Feature on <strong>Forbes 30 Under 30</strong> & Top Magazines.</li>
+                        <li class="flex items-center gap-3"><i data-lucide="check-circle" class="w-5 h-5 text-blue-500"></i> Build a world-class team of top talent.</li>
+                        <li class="flex items-center gap-3"><i data-lucide="check-circle" class="w-5 h-5 text-blue-500"></i> Make my family proud & buy them a dream house.</li>
+                        <li class="flex items-center gap-3"><i data-lucide="check-circle" class="w-5 h-5 text-blue-500"></i> Find the love of my life & marry the most beautiful, kind-hearted girl.</li>
+                        <li class="flex items-center gap-3"><i data-lucide="check-circle" class="w-5 h-5 text-green-500"></i> Build <strong>HumanityAI</strong> as a trillion-dollar company solving global problems.</li>
+                        <li class="flex items-center gap-3"><i data-lucide="check-circle" class="w-5 h-5 text-green-500"></i> Deliver <strong>TEDx talks</strong> on AI, entrepreneurship, and human potential to inspire the world.</li>
+                        <li class="flex items-center gap-3"><i data-lucide="check-circle" class="w-5 h-5 text-purple-500"></i> Create AI products that cure diseases and improve healthcare for millions.</li>
+                        <li class="flex items-center gap-3"><i data-lucide="check-circle" class="w-5 h-5 text-purple-500"></i> Own luxury vehicles (Mercedes, Tesla, Lamborghini) as symbols of success.</li>
+                        <li class="flex items-center gap-3"><i data-lucide="check-circle" class="w-5 h-5 text-indigo-500"></i> Travel to 50+ countries and experience different cultures & innovations.</li>
+                        <li class="flex items-center gap-3"><i data-lucide="check-circle" class="w-5 h-5 text-indigo-500"></i> Achieve financial freedom & generate passive income streams by 30.</li>
+                        <li class="flex items-center gap-3"><i data-lucide="check-circle" class="w-5 h-5 text-pink-500"></i> Write a bestselling book on AI, entrepreneurship, and building a legacy.</li>
+                        <li class="flex items-center gap-3"><i data-lucide="check-circle" class="w-5 h-5 text-pink-500"></i> Become an advisor/investor in top tech startups and mentor the next generation.</li>
+                        <li class="flex items-center gap-3"><i data-lucide="check-circle" class="w-5 h-5 text-yellow-500"></i> Win prestigious awards (Startup of the Year, Innovation Leader, etc.).</li>
+                        <li class="flex items-center gap-3"><i data-lucide="check-circle" class="w-5 h-5 text-yellow-500"></i> Create a positive impact on society & donate to education and healthcare initiatives.</li>
+                        <li class="flex items-center gap-3"><i data-lucide="check-circle" class="w-5 h-5 text-cyan-500"></i> Launch <strong>EdTech Platform</strong> - democratize learning so anyone can master any skill for free.</li>
+                        <li class="flex items-center gap-3"><i data-lucide="check-circle" class="w-5 h-5 text-cyan-500"></i> Empower 1 million students from underserved communities with AI-powered education.</li>
+                        <li class="flex items-center gap-3"><i data-lucide="check-circle" class="w-5 h-5 text-orange-500"></i> Develop <strong>AI Assistant</strong> that helps solve real-world problems across education, healthcare, and climate.</li>
+                        <li class="flex items-center gap-3"><i data-lucide="check-circle" class="w-5 h-5 text-orange-500"></i> Build a research lab focused on AGI safety and beneficial AI for humanity.</li>
+                        <li class="flex items-center gap-3"><i data-lucide="check-circle" class="w-5 h-5 text-red-500"></i> Create a scholarship fund for underprivileged students pursuing tech and entrepreneurship.</li>
+                        <li class="flex items-center gap-3"><i data-lucide="check-circle" class="w-5 h-5 text-red-500"></i> Speak at MIT, Stanford, Harvard, and other top universities about the future of AI & innovation.</li>
+                        <li class="flex items-center gap-3"><i data-lucide="check-circle" class="w-5 h-5 text-teal-500"></i> Build partnerships with governments to implement AI solutions for social good.</li>
+                        <li class="flex items-center gap-3"><i data-lucide="check-circle" class="w-5 h-5 text-teal-500"></i> Create 10,000+ jobs through HumanityAI and its ecosystem companies by 2035.</li>
+                        <li class="flex items-center gap-3"><i data-lucide="check-circle" class="w-5 h-5 text-violet-500"></i> Launch <strong>YouTube Channel</strong> with 1M+ subscribers sharing AI, entrepreneurship, and personal growth content.</li>
+                        <li class="flex items-center gap-3"><i data-lucide="check-circle" class="w-5 h-5 text-violet-500"></i> Start a <strong>Podcast</strong> featuring conversations with industry leaders, innovators, and changemakers.</li>
+                        <li class="flex items-center gap-3"><i data-lucide="check-circle" class="w-5 h-5 text-amber-500"></i> Build a personal brand as a thought leader in AI, innovation, and entrepreneurship.</li>
+                        <li class="flex items-center gap-3"><i data-lucide="check-circle" class="w-5 h-5 text-amber-500"></i> Create viral content that educates millions about AI, coding, and building a startup empire.</li>
+                        <li class="flex items-center gap-3"><i data-lucide="check-circle" class="w-5 h-5 text-fuchsia-500"></i> Establish a newsletter with 100K+ subscribers discussing the future of technology and humanity.</li>
+                        <li class="flex items-center gap-3"><i data-lucide="check-circle" class="w-5 h-5 text-fuchsia-500"></i> Create online courses that have helped 500K+ people learn AI, programming, and entrepreneurship.</li>
+                        <li class="flex items-center gap-3"><i data-lucide="check-circle" class="w-5 h-5 text-rose-500"></i> Host webinars and live events that bring together tech community and inspire action.</li>
+                        <li class="flex items-center gap-3"><i data-lucide="check-circle" class="w-5 h-5 text-rose-500"></i> Collaborate with top content creators and build a movement around AI for good.</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer class="bg-black py-16 border-t border-gray-800 text-white z-10 relative">
+            <div class="max-w-7xl mx-auto px-6 text-center">
+                <p class="text-gray-500 text-xs uppercase tracking-widest">End of Diary Entries</p>
+                <div class="mt-4"><a href="index.html" class="text-blue-500 hover:text-white text-xs font-bold uppercase">Return to Homepage</a></div>
+            </div>
+        </footer>
+    </main>
+
+    <script>
+        lucide.createIcons();
+
+        // Theme Logic
+        const html = document.documentElement;
+        if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            html.classList.add('dark');
+        } else {
+            html.classList.remove('dark');
+        }
+
+        // Scroll Animation Logic
+        function reveal() {
+            var reveals = document.querySelectorAll(".reveal");
+            for (var i = 0; i < reveals.length; i++) {
+                var windowHeight = window.innerHeight;
+                var elementTop = reveals[i].getBoundingClientRect().top;
+                var elementVisible = 150;
+                if (elementTop < windowHeight - elementVisible) {
+                    reveals[i].classList.add("active");
+                }
+            }
+        }
+        window.addEventListener("scroll", reveal);
+        // Trigger once on load
+        reveal();
+        
+        // Humanity Canvas Animation (Calm Constellation)
+        const canvas = document.getElementById('humanity-canvas');
+        if (canvas) {
+            const ctx = canvas.getContext('2d');
+            let width, height;
+            let particles = [];
+            const particleCount = 60; // Reduced count for cleaner look
+            const connectionDistance = 180; // Longer connections
+
+            function resize() {
+                width = canvas.parentElement.offsetWidth;
+                height = canvas.parentElement.offsetHeight;
+                canvas.width = width;
+                canvas.height = height;
+                initParticles();
+            }
+            window.addEventListener('resize', resize);
+
+            class Particle {
+                constructor() {
+                    this.x = Math.random() * width;
+                    this.y = Math.random() * height;
+                    this.vx = (Math.random() - 0.5) * 0.4; // Very slow movement
+                    this.vy = (Math.random() - 0.5) * 0.4;
+                    this.size = Math.random() * 2 + 1;
+                }
+                update() {
+                    this.x += this.vx;
+                    this.y += this.vy;
+                    // Bounce off edges
+                    if (this.x < 0 || this.x > width) this.vx *= -1;
+                    if (this.y < 0 || this.y > height) this.vy *= -1;
+                }
+                draw() {
+                    const isDark = document.documentElement.classList.contains('dark');
+                    ctx.beginPath();
+                    ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                    
+                    // Dark Mode: Cyan-500, Light Mode: Indigo-600
+                    ctx.fillStyle = isDark 
+                        ? `rgba(6, 182, 212, 0.6)` 
+                        : `rgba(79, 70, 229, 0.6)`;
+                    ctx.fill();
+                }
+            }
+
+            function initParticles() {
+                particles = [];
+                for (let i = 0; i < particleCount; i++) particles.push(new Particle());
+            }
+
+            function animate() {
+                ctx.clearRect(0, 0, width, height);
+                const isDark = document.documentElement.classList.contains('dark');
+                
+                for (let i = 0; i < particles.length; i++) {
+                    particles[i].update();
+                    particles[i].draw();
+                    
+                    for (let j = i + 1; j < particles.length; j++) {
+                        let dx = particles[i].x - particles[j].x;
+                        let dy = particles[i].y - particles[j].y;
+                        let distance = Math.sqrt(dx*dx + dy*dy);
+                        
+                        if (distance < connectionDistance) {
+                            ctx.beginPath();
+                            // Line Color
+                            const color = isDark ? `6, 182, 212` : `79, 70, 229`;
+                            ctx.strokeStyle = `rgba(${color}, ${0.1 * (1 - distance/connectionDistance)})`;
+                            ctx.lineWidth = 1;
+                            ctx.moveTo(particles[i].x, particles[i].y);
+                            ctx.lineTo(particles[j].x, particles[j].y);
+                            ctx.stroke();
+                        }
+                    }
+                }
+                requestAnimationFrame(animate);
+            }
+            // Init
+            resize();
+            animate();
+        }
+
+        // Vision Board Canvas Animation (Golden Fireflies / Dust)
+        const visionCanvas = document.getElementById('vision-canvas');
+        if (visionCanvas) {
+            const vCtx = visionCanvas.getContext('2d');
+            let vWidth, vHeight;
+            let vParticles = [];
+            const vParticleCount = 60;
+
+            function vResize() {
+                vWidth = visionCanvas.parentElement.offsetWidth;
+                vHeight = visionCanvas.parentElement.offsetHeight;
+                visionCanvas.width = vWidth;
+                visionCanvas.height = vHeight;
+                vInitParticles();
+            }
+            window.addEventListener('resize', vResize);
+
+            class VParticle {
+                constructor() {
+                    this.x = Math.random() * vWidth;
+                    this.y = Math.random() * vHeight;
+                    this.vy = Math.random() * 0.5 + 0.2; // Move up (Rising dreams)
+                    this.size = Math.random() * 2;
+                    this.alpha = Math.random() * 0.5 + 0.3;
+                    this.pulseSpeed = Math.random() * 0.05;
+                }
+                update() {
+                    this.y -= this.vy;
+                    // Pulse alpha
+                    this.alpha += this.pulseSpeed;
+                    if (this.alpha > 1 || this.alpha < 0.2) this.pulseSpeed *= -1;
+
+                    if (this.y < 0) {
+                        this.y = vHeight;
+                        this.x = Math.random() * vWidth;
+                    }
+                }
+                draw() {
+                    const isDark = document.documentElement.classList.contains('dark');
+                    vCtx.beginPath();
+                    vCtx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                    // Gold/Yellow dream dust
+                    vCtx.fillStyle = isDark ? `rgba(250, 204, 21, ${this.alpha})` : `rgba(234, 179, 8, ${this.alpha})`;
+                    vCtx.shadowBlur = 10;
+                    vCtx.shadowColor = isDark ? "rgba(250, 204, 21, 0.8)" : "rgba(234, 179, 8, 0.5)";
+                    vCtx.fill();
+                    vCtx.shadowBlur = 0; // Reset shadow for performance
+                }
+            }
+
+            function vInitParticles() {
+                vParticles = [];
+                for (let i = 0; i < vParticleCount; i++) {
+                    vParticles.push(new VParticle());
+                }
+            }
+
+            function vAnimate() {
+                vCtx.clearRect(0, 0, vWidth, vHeight);
+                for (let i = 0; i < vParticles.length; i++) {
+                    vParticles[i].update();
+                    vParticles[i].draw();
+                }
+                requestAnimationFrame(vAnimate);
+            }
+            
+            // Init Vision Canvas
+            vResize();
+            vAnimate();
+        }
+
+        // Spotlight Logic for Vision Cards
+        document.querySelectorAll('.vision-card').forEach(card => {
+            card.addEventListener('mousemove', e => {
+                const rect = card.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                card.style.setProperty('--mouse-x', `${x}px`);
+                card.style.setProperty('--mouse-y', `${y}px`);
+            });
+        });
+
+        /* Password Protection Logic */
+        const CORRECT_PASSWORD = '123';
+        const passwordModal = document.getElementById('passwordModal');
+        const passwordInput = document.getElementById('passwordInput');
+        const errorMsg = document.getElementById('errorMsg');
+        const mainContent = document.querySelector('body > :not(#passwordModal)');
+
+        // Check if already authenticated
+        function initializePasswordCheck() {
+            const isAuthenticated = sessionStorage.getItem('diaryAuthenticated');
+            if (isAuthenticated === 'true') {
+                passwordModal.style.display = 'none';
+            } else {
+                passwordModal.style.display = 'flex';
+                // Hide all page content except modal
+                document.body.style.overflow = 'hidden';
+                passwordInput.focus();
+            }
+        }
+
+        function checkPassword() {
+            const input = passwordInput.value;
+            if (input === CORRECT_PASSWORD) {
+                sessionStorage.setItem('diaryAuthenticated', 'true');
+                passwordModal.style.display = 'none';
+                document.body.style.overflow = 'auto';
+                passwordInput.value = '';
+                errorMsg.textContent = '';
+                errorMsg.style.opacity = '0';
+            } else {
+                errorMsg.textContent = '❌ Incorrect password. Try again.';
+                errorMsg.style.opacity = '1';
+                passwordInput.value = '';
+                passwordInput.style.animation = 'none';
+                setTimeout(() => {
+                    passwordInput.style.animation = 'shake 0.5s';
+                }, 10);
+            }
+        }
+
+        // Add shake animation
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes shake {
+                0%, 100% { transform: translateX(0); }
+                25% { transform: translateX(-10px); }
+                75% { transform: translateX(10px); }
+            }
+        `;
+        document.head.appendChild(style);
+
+        // Initialize on page load
+        window.addEventListener('DOMContentLoaded', initializePasswordCheck);
+        initializePasswordCheck(); // Also check immediately
+    </script>
+</body>
+</html>

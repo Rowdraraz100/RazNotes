@@ -1,0 +1,836 @@
+<!DOCTYPE html>
+<html lang="en" class="dark scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#000000">
+    <title>Raz Notes | Engineering the Future</title>
+    <link rel="icon" type="image/png" href="Images/logo2.png">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <!-- Chart.js for Graphs -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- Tailwind Configuration -->
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        ash: { 100: '#f3f4f6', 200: '#e5e7eb', 800: '#1f2937', 900: '#111827' },
+                        humanity: { blue: '#3b82f6', cyan: '#06b6d4' }
+                    },
+                    animation: {
+                        'pulse-slow': 'pulse 6s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'float': 'float 6s ease-in-out infinite',
+                        'check-bounce': 'checkBounce 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
+                        'slide-in': 'slideIn 0.5s ease-out forwards',
+                        'shimmer': 'shimmer 3s linear infinite',
+                        'spin-slow': 'spin 4s linear infinite',
+                        'spin-ultra-slow': 'spin 20s linear infinite',
+                        'shooting-star': 'shooting 6s linear infinite',
+                    },
+                    keyframes: {
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0)' },
+                            '50%': { transform: 'translateY(-10px)' },
+                        },
+                        checkBounce: {
+                            '0%': { transform: 'scale(0) rotate(-45deg)' },
+                            '70%': { transform: 'scale(1.2) rotate(0deg)' },
+                            '100%': { transform: 'scale(1) rotate(0deg)' },
+                        },
+                        slideIn: {
+                            '0%': { opacity: '0', transform: 'translateY(10px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0)' },
+                        },
+                        shimmer: {
+                            '0%': { backgroundPosition: '200% 0' },
+                            '100%': { backgroundPosition: '-200% 0' }
+                        },
+                        shooting: {
+                            '0%': { transform: 'translateX(0) translateY(0) rotate(45deg)', opacity: '0' },
+                            '5%': { opacity: '1' },
+                            '100%': { transform: 'translateX(-600px) translateY(600px) rotate(45deg)', opacity: '0' }
+                        }
+                    },
+                    fontFamily: {
+                        serif: ['Georgia', 'Cambria', 'Times New Roman', 'Times', 'serif'],
+                        mono: ['Courier New', 'Courier', 'monospace'],
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <!-- External CSS -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="bg-white text-gray-900 dark:bg-black dark:text-white font-sans antialiased selection:bg-black selection:text-white dark:selection:bg-white dark:selection:text-black transition-colors duration-300">
+
+    <!-- Loading Screen -->
+    <div class="loading-container" id="loadingScreen" onclick="document.getElementById('loadingScreen').style.animation = 'none'; document.getElementById('loadingScreen').style.opacity = '0'; document.getElementById('loadingScreen').style.pointerEvents = 'none';">
+        <div class="flex flex-col items-center justify-center">
+            <img src="Images/Logo.png" alt="Loading" class="loading-image" style="width: 140px; height: 140px;">
+            <p class="text-white text-3xl font-bold text-center leading-relaxed mt-8">Great things are on the way...<br>Keep shining ✨</p>
+        </div>
+    </div>
+
+    <!-- GLOBAL NAVIGATION -->
+    <nav id="navbar" class="absolute top-0 left-0 w-full z-50 transition-all duration-300 py-4 bg-white/80 dark:bg-black/90 backdrop-blur-md border-b border-gray-200 dark:border-gray-900">
+        <div class="max-w-7xl mx-auto px-6 flex justify-between items-center">
+            <a href="index.html" class="text-2xl font-bold text-black dark:text-white tracking-tighter border-2 border-black dark:border-white px-2 py-1 relative z-50 transition-colors cursor-pointer">
+                RAZ NOTES
+            </a>
+
+            <!-- Desktop Nav -->
+            <div class="hidden md:flex items-center space-x-6 relative z-50">
+                <a href="#vision" class="text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white transition-all text-xs font-bold tracking-widest uppercase hover:underline underline-offset-8 decoration-black dark:decoration-white">Vision</a>
+                <a href="#time-reality" class="text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white transition-all text-xs font-bold tracking-widest uppercase hover:underline underline-offset-8 decoration-black dark:decoration-white">Time</a>
+                <a href="#habit-tracker" class="text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white transition-all text-xs font-bold tracking-widest uppercase hover:underline underline-offset-8 decoration-black dark:decoration-white">Tracker</a>
+                
+                <!-- LINK TO PERSONAL DIARY FILE -->
+                <a href="personaldiary.html" class="text-blue-600 dark:text-cyan-400 hover:text-black dark:hover:text-white transition-all text-xs font-bold tracking-widest uppercase hover:underline underline-offset-8 decoration-black dark:decoration-white flex items-center gap-1">
+                    <i data-lucide="lock" class="w-3 h-3"></i> Personal Diary
+                </a>
+
+                <a href="#blogs" class="text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white transition-all text-xs font-bold tracking-widest uppercase hover:underline underline-offset-8 decoration-black dark:decoration-white">Blogs</a>
+                
+                <button id="theme-toggle" class="p-2 rounded-full border border-gray-300 dark:border-gray-700 bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-800 transition-all">
+                    <i data-lucide="sun" class="w-4 h-4 hidden dark:block"></i>
+                    <i data-lucide="moon" class="w-4 h-4 block dark:hidden"></i>
+                </button>
+            </div>
+
+            <!-- Mobile Nav Button -->
+            <button id="mobile-menu-btn" class="md:hidden text-black dark:text-white focus:outline-none relative z-50">
+                <i data-lucide="menu"></i>
+            </button>
+        </div>
+
+        <!-- Mobile Menu -->
+        <div id="mobile-menu" class="hidden md:hidden absolute top-full left-0 w-full bg-white dark:bg-black border-b border-gray-200 dark:border-gray-800 p-6 flex flex-col space-y-4 shadow-xl z-40">
+            <a href="#vision" class="text-left text-gray-700 dark:text-gray-300 hover:text-black dark:hover:text-white block py-2 font-medium">Vision</a>
+            <a href="#time-reality" class="text-left text-gray-700 dark:text-gray-300 hover:text-black dark:hover:text-white block py-2 font-medium">Time</a>
+            <a href="#habit-tracker" class="text-left text-gray-700 dark:text-gray-300 hover:text-black dark:hover:text-white block py-2 font-medium">Habit Tracker</a>
+            <a href="personaldiary.html" class="text-left text-blue-600 dark:text-cyan-400 hover:text-black dark:hover:text-white block py-2 font-medium">Personal Diary</a>
+            <a href="#blogs" class="text-left text-gray-700 dark:text-gray-300 hover:text-black dark:hover:text-white block py-2 font-medium">Blogs</a>
+            <button id="mobile-theme-toggle" class="flex items-center gap-2 text-gray-700 dark:text-gray-300 font-medium py-2">
+                <i data-lucide="sun" class="w-4 h-4 hidden dark:block"></i>
+                <i data-lucide="moon" class="w-4 h-4 block dark:hidden"></i>
+                <span>Toggle Theme</span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- HERO SECTION -->
+    <header class="relative min-h-screen flex items-center justify-center bg-[#f7f4ec] dark:bg-black overflow-hidden transition-colors duration-500 pt-20">
+        <canvas id="neural-canvas"></canvas>
+        <div class="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none z-0">
+            <div class="absolute top-1/4 left-1/4 w-96 h-96 bg-blue-200/30 dark:bg-transparent blob-white rounded-full animate-pulse-slow opacity-30"></div>
+            <div class="absolute bottom-1/4 right-1/4 w-96 h-96 bg-gray-300 dark:bg-gray-800 blob-ash rounded-full animate-pulse-slow opacity-15 dark:opacity-10" style="animation-delay: 2s;"></div>
+        </div>
+
+        <div class="relative z-10 max-w-7xl mx-auto px-6 text-center mt-12">
+            <div class="flex flex-col md:flex-row items-center justify-center gap-12 mb-16">
+                <!-- Profile Image -->
+                <div class="relative w-72 h-96 md:w-80 md:h-[30rem] group flex-shrink-0 transform transition-transform hover:scale-[1.02]">
+                    <div class="absolute -inset-2 bg-gradient-to-tr from-blue-400 to-cyan-400 dark:from-blue-600 dark:to-cyan-500 rounded-[2.5rem] blur-lg opacity-40 group-hover:opacity-75 transition-opacity duration-500 animate-pulse-slow"></div>
+                    <div class="relative w-full h-full rounded-[2.5rem] overflow-hidden border-2 border-gray-200 dark:border-white/10 bg-white dark:bg-gray-900 shadow-2xl animate-[float_6s_ease-in-out_infinite]">
+                        <img src="Images/profile2.png" alt="Rowdra" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110">
+                        <div class="absolute inset-0 bg-gradient-to-t from-transparent dark:from-black/60 via-transparent to-transparent"></div>
+                    </div>
+                </div>
+                
+                <!-- Intro Text -->
+                <div class="text-center md:text-left z-10">
+                    <h2 class="text-6xl md:text-8xl font-black text-black dark:text-white tracking-tighter mb-2 drop-shadow-sm leading-[0.9] transition-colors">
+                        HEY 👋 <br>
+                        I AM <br>
+                        <span class="text-black dark:text-transparent dark:bg-clip-text dark:bg-gradient-to-r dark:from-blue-400 dark:via-cyan-400 dark:to-teal-300">ROWDRARAZ PAUL</span>
+                    </h2>
+                    <div class="h-2 w-32 bg-blue-600 dark:bg-blue-500 mt-6 mx-auto md:mx-0 rounded-full"></div>
+                </div>
+            </div>
+
+            <div class="inline-block mb-6 px-6 py-2 border border-gray-400 dark:border-gray-600 bg-white/80 dark:bg-black/60 text-gray-800 dark:text-gray-300 text-sm font-bold tracking-[0.3em] uppercase backdrop-blur-md rounded-full transition-colors">
+                LEARNER • BUILDER • VISIONARY
+            </div>
+            <h1 class="text-5xl md:text-8xl font-black text-black dark:text-white mb-8 leading-tight tracking-tight drop-shadow-sm transition-colors">
+                RAZ <br />
+                <span class="text-transparent bg-clip-text bg-gradient-to-r from-black via-gray-800 to-gray-600 dark:from-gray-200 dark:via-gray-400 dark:to-gray-600">
+                    NOTES
+                </span>
+            </h1>
+            <p class="text-xl text-gray-800 dark:text-gray-400 max-w-3xl mx-auto mb-12 leading-relaxed font-medium drop-shadow-sm transition-colors">
+                I am an aspiring AI Entrepreneur and Engineer on a mission to build the future. 
+                Combining <span class="text-black dark:text-white font-bold underline decoration-blue-500">Hard Work</span> and <span class="text-black dark:text-white font-bold underline decoration-purple-500">Vision</span> to revolutionize Education, Search, and Medicine with human-centered AI.
+            </p>
+            
+            <div class="flex flex-col sm:flex-row items-center justify-center gap-6">
+                <!-- ACCESS DIARY BUTTON (LINK) -->
+                <a href="personaldiary.html" class="px-10 py-4 bg-gradient-to-r from-blue-700 to-cyan-600 dark:from-blue-600 dark:to-cyan-500 text-white rounded-none font-bold text-sm tracking-widest hover:shadow-lg hover:scale-105 transition-all w-full sm:w-auto uppercase flex items-center justify-center gap-2">
+                    <i data-lucide="lock" class="w-4 h-4"></i> Access My Personal Diary
+                </a>
+                <a href="#vision" class="px-10 py-4 bg-transparent border border-black dark:border-white text-black dark:text-white rounded-none font-bold text-sm tracking-widest hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black transition-all w-full sm:w-auto uppercase backdrop-blur-sm">
+                    Explore My World
+                </a>
+            </div>
+        </div>
+
+        <div class="absolute bottom-10 left-1/2 transform -translate-x-1/2 animate-bounce text-black dark:text-white z-10 transition-colors">
+            <i data-lucide="arrow-down" class="w-6 h-6"></i>
+        </div>
+    </header>
+
+    <!-- Vision Section -->
+    <section id="vision" class="py-24 bg-gray-50 dark:bg-white text-gray-900 dark:text-black relative z-10 transition-colors duration-300">
+        <div class="max-w-7xl mx-auto px-6">
+            <div class="grid md:grid-cols-2 gap-16 items-center">
+                <div>
+                    <h2 class="text-4xl md:text-6xl font-black mb-8 tracking-tight">THE GRAND <br>VISION</h2>
+                    <div class="h-2 w-24 bg-black mb-8"></div>
+                    <p class="text-gray-700 text-xl mb-6 leading-relaxed font-medium">"Improve humanity & do something useful for humanity. Create AI products that help humanity live better. Moving to AGI."</p>
+                    <p class="text-gray-600 mb-8 leading-relaxed">In the next 10 years, AI will be the engine to change humanity. I will be on the frontline to do something useful in this field. My ultimate goal is to build a Foundation Company (HumanityAI) that solves big problems.</p>
+                </div>
+                <div class="relative">
+                    <div class="relative bg-white dark:bg-black text-black dark:text-white p-10 shadow-2xl border border-gray-200 dark:border-gray-800 transition-colors"><i data-lucide="quote" class="text-gray-400 dark:text-gray-500 mb-6 w-12 h-12"></i><p class="text-2xl italic font-serif mb-8 text-gray-700 dark:text-gray-200">"If you are working on something exciting that you really care about, you don't have to be pushed. The vision pulls you."</p><div class="text-right border-t border-gray-300 dark:border-gray-800 pt-4"><span class="text-gray-500 dark:text-gray-400 text-xs uppercase tracking-widest font-bold">- Personal Excellence</span></div></div>
+                    <div class="absolute -bottom-4 -right-4 w-full h-full border-2 border-black dark:border-black -z-10"></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============================================= -->
+    <!-- QUOTES CAROUSEL SECTION (NEW ADDITION)        -->
+    <!-- ============================================= -->
+    <section id="quotes-carousel" class="py-20 bg-[#f7f4ec] dark:bg-black text-black dark:text-white relative overflow-hidden border-y border-purple-900/20">
+        <!-- Background decoration -->
+        <div class="absolute inset-0 opacity-70 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-purple-200/40 via-[#f7f4ec] to-transparent dark:from-purple-900/40 dark:via-[#050505] dark:to-black pointer-events-none"></div>
+        <div class="absolute top-1/2 left-0 w-32 h-32 bg-purple-200/40 dark:bg-purple-600/20 rounded-full blur-3xl"></div>
+        <div class="absolute bottom-0 right-0 w-64 h-64 bg-indigo-300/20 dark:bg-indigo-600/10 rounded-full blur-3xl"></div>
+        
+        <div class="max-w-4xl mx-auto px-6 text-center relative z-10 min-h-[300px] flex flex-col justify-center items-center">
+            
+            <div class="mb-8">
+                <span class="text-xs font-bold text-purple-700 dark:text-purple-200 uppercase tracking-[0.3em] border border-purple-500/40 bg-purple-100/70 dark:bg-purple-900/20 px-3 py-1 rounded-full">Mental Models</span>
+            </div>
+
+            <!-- Quote Container -->
+            <div id="quote-display" class="transition-all duration-1000 ease-in-out opacity-100 transform translate-y-0">
+                <i data-lucide="quote" class="w-10 h-10 text-purple-400 dark:text-purple-500/50 mx-auto mb-6 fill-current"></i>
+                
+                <p id="quote-text" class="text-2xl md:text-4xl font-light italic font-serif mb-8 leading-relaxed text-gray-800 dark:text-gray-100">
+                    "The people who are crazy enough to think they can change the world are the ones who do."
+                </p>
+                
+                <div class="flex items-center justify-center gap-4">
+                    <div class="h-[1px] w-12 bg-gradient-to-r from-transparent to-purple-500"></div>
+                    <p id="quote-author" class="text-sm font-bold uppercase tracking-[0.2em] text-purple-700 dark:text-purple-400">
+                        Steve Jobs
+                    </p>
+                    <div class="h-[1px] w-12 bg-gradient-to-l from-transparent to-purple-500"></div>
+                </div>
+            </div>
+
+            <!-- Progress Bar for Quote Timer -->
+            <div class="mt-12 w-full max-w-xs h-1 bg-gray-200 dark:bg-gray-900 rounded-full overflow-hidden">
+                <div id="quote-progress" class="h-full bg-purple-600 dark:bg-purple-500 w-0"></div>
+            </div>
+            
+        </div>
+    </section>
+
+    <!-- ============================================= -->
+    <!-- PURPOSE OF LIFE SECTION (NEW)                 -->
+    <!-- ============================================= -->
+    <section id="purpose" class="py-32 bg-black relative overflow-hidden flex items-center justify-center border-b border-gray-900">
+        <!-- Pure Black Background (Nebula Removed) -->
+        
+        <!-- Stars/Particles (Static for atmosphere) -->
+        <div class="absolute top-10 left-10 w-1 h-1 bg-white rounded-full animate-pulse"></div>
+        <div class="absolute bottom-20 right-20 w-1 h-1 bg-blue-400 rounded-full animate-pulse" style="animation-delay: 1s;"></div>
+        <div class="absolute top-1/2 left-1/3 w-1 h-1 bg-purple-400 rounded-full animate-pulse" style="animation-delay: 2s;"></div>
+
+        <!-- Shooting Stars Animation -->
+        <div class="absolute -top-20 right-10 w-[2px] h-[100px] bg-gradient-to-b from-white via-cyan-300 to-transparent opacity-0 animate-shooting-star" style="animation-delay: 2s;"></div>
+        <div class="absolute top-0 -right-20 w-[2px] h-[150px] bg-gradient-to-b from-white via-purple-300 to-transparent opacity-0 animate-shooting-star" style="animation-delay: 5s;"></div>
+
+        <div class="relative z-10 text-center px-6 max-w-4xl mx-auto">
+            <div class="inline-flex items-center gap-2 mb-8 px-4 py-2 rounded-full border border-blue-500/30 bg-blue-900/10 backdrop-blur-xl animate-pulse-slow">
+                <i data-lucide="globe-2" class="w-4 h-4 text-blue-400 animate-spin-slow"></i>
+                <span class="text-blue-200 text-xs font-bold tracking-[0.2em] uppercase">Core Mission</span>
+            </div>
+            
+            <h2 class="text-5xl md:text-7xl font-black tracking-tighter mb-8 leading-tight animate-[float_8s_ease-in-out_infinite]">
+                PURPOSE OF <br />
+                <span class="bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-purple-300 to-blue-400 animate-shimmer bg-[length:200%_auto]">
+                    LIFE
+                </span>
+            </h2>
+
+            <div class="relative group">
+                <div class="absolute -inset-1 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg blur opacity-25 group-hover:opacity-50 transition duration-1000 group-hover:duration-200"></div>
+                <div class="relative px-8 py-6 bg-black rounded-lg border border-gray-800 leading-none flex items-center justify-center transform transition-transform duration-500 group-hover:scale-[1.02]">
+                    <span class="text-2xl md:text-4xl text-gray-200 font-light font-serif italic">
+                        "Understand the universe. Expand knowledge."
+                    </span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============================================= -->
+    <!-- TEMPORAL REALITY (TIME AWARENESS) SECTION     -->
+    <!-- ============================================= -->
+    <section id="time-reality" class="py-24 bg-black relative border-b border-gray-900 overflow-hidden">
+        <!-- Background effects (Subtle Grid) -->
+        <div class="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px]"></div>
+
+        <div class="max-w-6xl mx-auto px-6 relative z-10 text-center">
+            <!-- Title -->
+            <h2 class="text-3xl md:text-5xl font-black text-white mb-8 tracking-tighter uppercase">
+                Temporal <span class="text-blue-500">Reality</span>
+            </h2>
+
+            <!-- Clock -->
+            <div class="font-mono text-5xl md:text-7xl font-bold text-white mb-4 tracking-widest relative inline-block">
+                <span id="live-clock">00:00:00</span>
+                <div class="absolute -inset-4 bg-blue-500/20 blur-xl -z-10 animate-pulse-slow"></div>
+            </div>
+            <p class="text-gray-500 text-sm tracking-[0.3em] uppercase mb-12">Current Timeline</p>
+
+            <!-- Progress Bars -->
+            <div class="space-y-8 max-w-2xl mx-auto mb-20">
+                <!-- Day Progress -->
+                <div>
+                    <div class="flex justify-between text-xs font-bold text-gray-400 mb-2 uppercase tracking-wider">
+                        <span>Day Progress</span>
+                        <span id="day-percent-text">0%</span>
+                    </div>
+                    <div class="bg-gray-900 rounded-full h-4 overflow-hidden border border-gray-800 relative group shadow-[0_0_15px_rgba(37,99,235,0.2)]">
+                        <div id="day-progress" class="h-full bg-gradient-to-r from-blue-600 to-cyan-500 w-0 transition-all duration-1000"></div>
+                    </div>
+                </div>
+
+                <!-- Year Progress -->
+                <div>
+                    <div class="flex justify-between text-xs font-bold text-gray-400 mb-2 uppercase tracking-wider">
+                        <span>Year Progress</span>
+                        <span id="year-percent-text">0%</span>
+                    </div>
+                    <div class="bg-gray-900 rounded-full h-4 overflow-hidden border border-gray-800 relative group shadow-[0_0_15px_rgba(147,51,234,0.2)]">
+                        <div id="year-progress" class="h-full bg-gradient-to-r from-purple-600 to-pink-500 w-0 transition-all duration-1000"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Time Management Matrix (Eisenhower) -->
+            <div class="mb-16">
+                <h3 class="text-xl font-bold text-gray-400 mb-8 uppercase tracking-widest">Eisenhower Matrix</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-4xl mx-auto text-left">
+                    <!-- Q1 -->
+                    <div class="bg-red-900/20 border border-red-500/30 p-6 rounded-xl backdrop-blur-sm hover:bg-red-900/30 transition-colors group">
+                        <div class="flex justify-between items-start mb-2">
+                            <span class="text-red-400 font-bold text-xs uppercase tracking-wider">Urgent & Important</span>
+                            <span class="text-red-500 font-black text-4xl opacity-20 group-hover:opacity-40 transition-opacity">Q1</span>
+                        </div>
+                        <h4 class="text-white font-bold text-lg mb-1">Do First</h4>
+                        <p class="text-gray-400 text-sm">Crises, Deadlines, Problems.</p>
+                    </div>
+                    <!-- Q2 -->
+                    <div class="bg-blue-900/20 border border-blue-500/30 p-6 rounded-xl backdrop-blur-sm hover:bg-blue-900/30 transition-colors group relative overflow-hidden ring-1 ring-blue-500/50">
+                        <div class="absolute inset-0 bg-blue-500/5 animate-pulse-slow"></div>
+                        <div class="flex justify-between items-start mb-2 relative z-10">
+                            <span class="text-blue-400 font-bold text-xs uppercase tracking-wider">Not Urgent & Important</span>
+                            <span class="text-blue-500 font-black text-4xl opacity-20 group-hover:opacity-40 transition-opacity">Q2</span>
+                        </div>
+                        <h4 class="text-white font-bold text-lg mb-1 relative z-10">Schedule (The Zone)</h4>
+                        <p class="text-gray-400 text-sm relative z-10">Planning, Learning, Health, Building.</p>
+                    </div>
+                    <!-- Q3 -->
+                    <div class="bg-yellow-900/20 border border-yellow-500/30 p-6 rounded-xl backdrop-blur-sm hover:bg-yellow-900/30 transition-colors group">
+                        <div class="flex justify-between items-start mb-2">
+                            <span class="text-yellow-400 font-bold text-xs uppercase tracking-wider">Urgent & Not Important</span>
+                            <span class="text-yellow-500 font-black text-4xl opacity-20 group-hover:opacity-40 transition-opacity">Q3</span>
+                        </div>
+                        <h4 class="text-white font-bold text-lg mb-1">Delegate</h4>
+                        <p class="text-gray-400 text-sm">Interruptions, Some Calls/Emails.</p>
+                    </div>
+                    <!-- Q4 -->
+                    <div class="bg-gray-800/40 border border-gray-700 p-6 rounded-xl backdrop-blur-sm hover:bg-gray-800/60 transition-colors group">
+                        <div class="flex justify-between items-start mb-2">
+                            <span class="text-gray-400 font-bold text-xs uppercase tracking-wider">Not Urgent & Not Important</span>
+                            <span class="text-gray-500 font-black text-4xl opacity-20 group-hover:opacity-40 transition-opacity">Q4</span>
+                        </div>
+                        <h4 class="text-white font-bold text-lg mb-1">Eliminate</h4>
+                        <p class="text-gray-400 text-sm">Time Wasters, Excessive scrolling.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Rotating Time Quotes -->
+            <div class="p-6 border border-gray-800 bg-gray-900/30 rounded-xl backdrop-blur-sm relative overflow-hidden group max-w-2xl mx-auto min-h-[120px] flex items-center justify-center">
+                <div class="absolute top-0 left-0 w-1 h-full bg-blue-500"></div>
+                <p id="time-quote-text" class="text-xl md:text-2xl font-serif italic text-gray-300 transition-opacity duration-700 opacity-100">
+                    "Time is the scarcity we ignore. Utilize every moment to build the future."
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============================================= -->
+    <!-- HABIT TRACKER: CODEFORCES STYLE -->
+    <!-- ============================================= -->
+    <section id="habit-tracker" class="py-12 md:py-24 bg-gradient-to-br from-[#450a0a] via-[#1a0505] to-black text-white border-t border-red-900/30 z-10 relative transition-colors duration-300">
+        
+        <!-- Decoration BG -->
+        <div class="absolute top-0 right-0 w-[500px] h-[500px] bg-red-600/10 rounded-full blur-3xl pointer-events-none"></div>
+
+        <div class="max-w-7xl mx-auto px-4 md:px-6 relative z-10">
+            <div class="text-center mb-8 md:mb-16">
+                <span class="text-[10px] md:text-xs font-bold bg-red-950/50 text-red-400 px-3 py-1 rounded-full uppercase tracking-widest border border-red-800/50">Consistency Protocol</span>
+                <h2 class="text-3xl md:text-4xl lg:text-5xl font-black mt-4 md:mt-6 mb-2 md:mb-4 uppercase tracking-tight text-white">System Activity</h2>
+                <p class="text-sm md:text-base text-gray-400 max-w-2xl mx-auto px-4">"A year of coding, reading, and building the future. One red square at a time."</p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8">
+                
+                <!-- Left Column: Activity Heatmap & Stats -->
+                <div class="lg:col-span-2 space-y-4 md:space-y-8">
+                    <!-- Stats Cards - Responsive Grid -->
+                    <div class="grid grid-cols-3 gap-3 md:gap-4">
+                        <div class="bg-black/40 border border-red-900/30 p-3 md:p-4 lg:p-6 rounded-xl md:rounded-2xl text-center shadow-sm hover:border-red-500 transition-all active:scale-95 backdrop-blur-sm">
+                            <i data-lucide="flame" class="w-5 h-5 md:w-6 md:h-6 text-orange-500 mx-auto mb-1 md:mb-2"></i>
+                            <div class="text-2xl md:text-3xl font-black text-white" id="current-streak">0</div>
+                            <div class="text-[9px] md:text-xs font-bold text-gray-400 uppercase tracking-wider leading-tight">Current<br class="md:hidden"/>Streak</div>
+                        </div>
+                        <div class="bg-black/40 border border-red-900/30 p-3 md:p-4 lg:p-6 rounded-xl md:rounded-2xl text-center shadow-sm hover:border-red-500 transition-all active:scale-95 backdrop-blur-sm">
+                            <i data-lucide="trophy" class="w-5 h-5 md:w-6 md:h-6 text-yellow-500 mx-auto mb-1 md:mb-2"></i>
+                            <div class="text-2xl md:text-3xl font-black text-white" id="max-streak">0</div>
+                            <div class="text-[9px] md:text-xs font-bold text-gray-400 uppercase tracking-wider leading-tight">Max<br class="md:hidden"/>Streak</div>
+                        </div>
+                        <div class="bg-black/40 border border-red-900/30 p-3 md:p-4 lg:p-6 rounded-xl md:rounded-2xl text-center shadow-sm hover:border-red-500 transition-all active:scale-95 backdrop-blur-sm">
+                            <i data-lucide="calendar-check" class="w-5 h-5 md:w-6 md:h-6 text-red-500 mx-auto mb-1 md:mb-2"></i>
+                            <div class="text-2xl md:text-3xl font-black text-white" id="total-active-days">0</div>
+                            <div class="text-[9px] md:text-xs font-bold text-gray-400 uppercase tracking-wider leading-tight">Total<br class="md:hidden"/>Active</div>
+                        </div>
+                    </div>
+
+                    <!-- Contribution Heatmap -->
+                    <div class="bg-black/40 border border-red-900/30 p-3 md:p-4 lg:p-6 rounded-xl md:rounded-2xl shadow-sm overflow-hidden backdrop-blur-sm">
+                        <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 md:mb-6 gap-3 md:gap-0">
+                            <h4 class="font-bold text-base md:text-lg text-white">Activity Log (365 Days)</h4>
+                            <div class="flex items-center gap-1.5 md:gap-2 text-[10px] md:text-xs text-gray-500">
+                                <span class="hidden sm:inline">Less</span>
+                                <div class="w-2.5 h-2.5 md:w-3 md:h-3 bg-white/5 rounded-sm"></div>
+                                <div class="w-2.5 h-2.5 md:w-3 md:h-3 bg-red-900/40 rounded-sm"></div>
+                                <div class="w-2.5 h-2.5 md:w-3 md:h-3 bg-red-700/60 rounded-sm"></div>
+                                <div class="w-2.5 h-2.5 md:w-3 md:h-3 bg-red-500 rounded-sm"></div>
+                                <span class="hidden sm:inline">More</span>
+                            </div>
+                        </div>
+                        <!-- Heatmap Grid -->
+                        <div class="heatmap-grid" id="heatmap-container">
+                            <!-- Squares injected via JS -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Column: Today's Checklist -->
+                <div class="bg-black/40 border border-red-900/30 p-4 md:p-5 lg:p-6 rounded-xl md:rounded-2xl shadow-sm h-full flex flex-col backdrop-blur-sm lg:sticky lg:top-24 lg:max-h-[calc(100vh-8rem)] lg:overflow-y-auto">
+                    <div class="flex justify-between items-center mb-4 md:mb-6 pb-3 md:pb-4 border-b border-red-900/20">
+                        <h4 class="font-bold text-base md:text-lg text-white">Today's Protocol</h4>
+                        <span class="text-[10px] md:text-xs bg-red-950/50 text-red-400 px-2 md:px-3 py-1 rounded font-bold" id="today-date">Dec 29</span>
+                    </div>
+                    
+                    <div class="space-y-3 md:space-y-4 flex-grow overflow-y-auto" id="habits-list-container">
+                        <!-- List Items injected via JS -->
+                    </div>
+
+                    <div class="mt-6 md:mt-8 pt-4 md:pt-6 border-t border-red-900/30 text-center">
+                        <p class="text-[10px] md:text-xs text-gray-500 italic mb-3 md:mb-4">"Consistency is the key to the empire."</p>
+                        <button onclick="resetData()" class="text-[10px] md:text-xs text-red-400 hover:text-red-500 underline transition-colors active:scale-95 px-4 py-2">Reset Data</button>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+        
+        <!-- Tooltip Element -->
+        <div id="heatmap-tooltip" class="heatmap-tooltip"></div>
+    </section>
+
+    <!-- Blogs Section -->
+    <section id="blogs" class="py-24 bg-gray-50 dark:bg-zinc-950 text-gray-900 dark:text-white relative border-t border-gray-200 dark:border-gray-900 transition-colors duration-300">
+        <div class="max-w-7xl mx-auto px-6">
+            <div class="text-center mb-16">
+                <h2 class="text-4xl font-black mb-4 uppercase tracking-tight">Latest Insights</h2>
+            </div>
+            <!-- Demo Blog -->
+            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <a href="VisionBoard/powerofpython.html" class="bg-white dark:bg-black border border-gray-300 dark:border-gray-800 rounded-xl overflow-hidden hover:border-blue-500 dark:hover:border-blue-500 transition-all duration-300 group cursor-pointer shadow-sm dark:shadow-none hover:shadow-lg dark:hover:shadow-blue-900/20">
+                    <div class="h-48 overflow-hidden bg-gray-200 dark:bg-gray-900 relative">
+                        <div class="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-blue-100 dark:from-blue-900/20 to-gray-200 dark:to-black">
+                            <i data-lucide="file-code" class="w-16 h-16 text-blue-500/50 group-hover:text-blue-400 transition-colors"></i>
+                        </div>
+                        <div class="absolute top-4 left-4 bg-blue-600 text-white text-[10px] font-bold px-2 py-1 rounded uppercase tracking-widest">Tech</div>
+                    </div>
+                    <div class="p-6">
+                        <h3 class="text-xl font-bold mb-3">The Power of Python</h3>
+                        <p class="text-gray-600 dark:text-gray-400 text-sm line-clamp-2">Python is not just a coding language; it's the native tongue of AI.</p>
+                        <span class="text-blue-500 text-xs font-bold uppercase tracking-widest group-hover:underline block mt-4">Read Article &rarr;</span>
+                    </div>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Books Club -->
+    <section id="books-club" class="py-24 bg-[#FDFCF0] dark:bg-black text-gray-900 dark:text-white relative border-t border-gray-200 dark:border-gray-900 transition-colors duration-300">
+        <div class="max-w-7xl mx-auto px-6">
+            <div class="flex flex-col md:flex-row justify-between items-end mb-16 border-b border-gray-300 dark:border-gray-800 pb-8">
+                <div><h2 class="text-4xl font-black uppercase tracking-tight text-gray-900 dark:text-white">Books Club</h2></div>
+            </div>
+            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <a href="Images/atomichabits.html" class="bg-white dark:bg-zinc-900/50 border border-gray-200 dark:border-gray-800 p-6 rounded-lg hover:border-black dark:hover:border-white transition-all duration-300 group shadow-sm dark:shadow-none hover:shadow-lg block">
+                    <div class="flex gap-6 mb-6">
+                        <div class="w-24 h-32 bg-gray-100 dark:bg-gray-800 flex-shrink-0 flex items-center justify-center border border-gray-200 dark:border-gray-700 group-hover:border-gray-400 dark:group-hover:border-gray-500 transition-colors overflow-hidden rounded">
+                            <img src="Images/atomichabits.jpg" alt="Atomic Habits" class="w-full h-full object-cover">
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-bold text-gray-900 dark:text-white leading-tight mb-1">Atomic Habits</h3>
+                            <p class="text-xs text-gray-500 uppercase tracking-wider mb-3">James Clear</p>
+                            <p class="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">Transform your life through tiny, incremental changes. Build better habits by understanding the power of small improvements.</p>
+                        </div>
+                    </div>
+                    <div class="space-y-3 border-t border-gray-200 dark:border-gray-700 pt-4">
+                        <p class="text-xs font-bold text-gray-600 dark:text-gray-400 uppercase tracking-widest">Key Points:</p>
+                        <ul class="space-y-2 text-sm text-gray-700 dark:text-gray-300">
+                            <li class="flex items-start gap-2">
+                                <span class="text-blue-500 font-bold mt-0.5">•</span>
+                                <span><strong>1% Better Daily:</strong> Small improvements compound over time</span>
+                            </li>
+                            <li class="flex items-start gap-2">
+                                <span class="text-purple-500 font-bold mt-0.5">•</span>
+                                <span><strong>Habit Stacking:</strong> Link new habits with existing ones</span>
+                            </li>
+                            <li class="flex items-start gap-2">
+                                <span class="text-cyan-500 font-bold mt-0.5">•</span>
+                                <span><strong>Environmental Design:</strong> Make good habits easy, bad ones hard</span>
+                            </li>
+                            <li class="flex items-start gap-2">
+                                <span class="text-green-500 font-bold mt-0.5">•</span>
+                                <span><strong>Identity-Based:</strong> Focus on who you want to become</span>
+                            </li>
+                        </ul>
+                    </div>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============================================= -->
+    <!-- GALLERY SECTION (VISUAL CHRONICLES)           -->
+    <!-- ============================================= -->
+    <section id="gallery" class="py-24 bg-white dark:bg-[#0a0a0a] text-black dark:text-white relative border-t border-gray-200 dark:border-gray-900 transition-colors duration-300 overflow-hidden">
+        <div class="absolute top-0 right-0 w-96 h-96 bg-blue-500/5 rounded-full blur-3xl pointer-events-none"></div>
+        <div class="absolute bottom-0 left-0 w-96 h-96 bg-purple-500/5 rounded-full blur-3xl pointer-events-none"></div>
+
+        <div class="max-w-7xl mx-auto px-6 relative z-10">
+            <div class="text-center mb-20">
+                <span class="text-xs font-bold text-blue-600 dark:text-blue-400 uppercase tracking-[0.3em] border border-blue-200 dark:border-blue-900 px-4 py-2 rounded-full">Memories</span>
+                <h2 class="text-4xl md:text-6xl font-black mt-6 uppercase tracking-tighter">Visual Chronicles</h2>
+                <p class="text-gray-500 mt-4 max-w-xl mx-auto">Moments captured in time. A glimpse into the journey.</p>
+            </div>
+
+            <!-- Gallery Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-8">
+                
+                <!-- Column 1 -->
+                <div class="space-y-4 md:space-y-8 flex flex-col">
+                    <div class="relative group overflow-hidden rounded-2xl h-64 md:h-80 w-full animate-[float_6s_ease-in-out_infinite]">
+                        <img src="Images/image00.jpeg" alt="Moment 00" class="absolute inset-0 w-full h-full object-cover transition-transform duration-700 transform group-hover:scale-110">
+                        <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-6">
+                            <span class="text-white font-bold tracking-widest text-sm">Moment 00</span>
+                        </div>
+                    </div>
+                    <div class="relative group overflow-hidden rounded-2xl h-52 md:h-64 w-full animate-[float_7s_ease-in-out_infinite]">
+                        <img src="Images/image0.jpeg" alt="Moment 0" class="absolute inset-0 w-full h-full object-cover transition-transform duration-700 transform group-hover:scale-110">
+                        <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-6">
+                            <span class="text-white font-bold tracking-widest text-sm">Moment 0</span>
+                        </div>
+                    </div>
+                    <div class="relative group overflow-hidden rounded-2xl h-56 md:h-64 w-full animate-[float_6s_ease-in-out_infinite]">
+                        <img src="Images/image1.jpeg" alt="Moment 1" class="absolute inset-0 w-full h-full object-cover transition-transform duration-700 transform group-hover:scale-110">
+                        <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-6">
+                            <span class="text-white font-bold tracking-widest text-sm">Moment 1</span>
+                        </div>
+                    </div>
+                    <div class="relative group overflow-hidden rounded-2xl h-52 md:h-64 w-full animate-[float_7s_ease-in-out_infinite]">
+                        <img src="Images/image2.jpeg" alt="Moment 2" class="absolute inset-0 w-full h-full object-cover transition-transform duration-700 transform group-hover:scale-110">
+                        <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-6">
+                            <span class="text-white font-bold tracking-widest text-sm">Moment 2</span>
+                        </div>
+                    </div>
+                    <div class="relative group overflow-hidden rounded-2xl h-56 md:h-64 w-full animate-[float_6s_ease-in-out_infinite]">
+                        <img src="Images/image3.jpeg" alt="Moment 3" class="absolute inset-0 w-full h-full object-cover transition-transform duration-700 transform group-hover:scale-110">
+                        <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-6">
+                            <span class="text-white font-bold tracking-widest text-sm">Moment 3</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Column 2 (Offset Animation) -->
+                <div class="space-y-4 md:space-y-8 flex flex-col md:pt-12">
+                    <div class="relative group overflow-hidden rounded-2xl h-80 md:h-96 w-full animate-[float_8s_ease-in-out_infinite]">
+                        <img src="Images/image4.jpeg" alt="Moment 4" class="absolute inset-0 w-full h-full object-cover transition-transform duration-700 transform group-hover:scale-110">
+                        <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-6">
+                            <span class="text-white font-bold tracking-widest text-sm">Moment 4</span>
+                        </div>
+                    </div>
+                    <div class="relative group overflow-hidden rounded-2xl h-52 md:h-64 w-full animate-[float_6s_ease-in-out_infinite]">
+                        <img src="Images/image5.jpeg" alt="Moment 5" class="absolute inset-0 w-full h-full object-cover transition-transform duration-700 transform group-hover:scale-110">
+                        <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-6">
+                            <span class="text-white font-bold tracking-widest text-sm">Moment 5</span>
+                        </div>
+                    </div>
+                    <div class="relative group overflow-hidden rounded-2xl h-52 md:h-64 w-full animate-[float_7s_ease-in-out_infinite]">
+                        <img src="Images/image6.jpeg" alt="Moment 6" class="absolute inset-0 w-full h-full object-cover transition-transform duration-700 transform group-hover:scale-110">
+                        <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-6">
+                            <span class="text-white font-bold tracking-widest text-sm">Moment 6</span>
+                        </div>
+                    </div>
+                    <div class="relative group overflow-hidden rounded-2xl h-52 md:h-64 w-full animate-[float_6s_ease-in-out_infinite]">
+                        <img src="Images/image7.jpeg" alt="Moment 7" class="absolute inset-0 w-full h-full object-cover transition-transform duration-700 transform group-hover:scale-110">
+                        <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-6">
+                            <span class="text-white font-bold tracking-widest text-sm">Moment 7</span>
+                        </div>
+                    </div>
+                    <div class="relative group overflow-hidden rounded-2xl h-52 md:h-64 w-full animate-[float_8s_ease-in-out_infinite]">
+                        <img src="Images/image8.jpeg" alt="Moment 8" class="absolute inset-0 w-full h-full object-cover transition-transform duration-700 transform group-hover:scale-110">
+                        <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-6">
+                            <span class="text-white font-bold tracking-widest text-sm">Moment 8</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Column 3 -->
+                <div class="space-y-4 md:space-y-8 flex flex-col">
+                    <div class="relative group overflow-hidden rounded-2xl h-52 md:h-64 w-full animate-[float_7s_ease-in-out_infinite]">
+                        <img src="Images/image9.jpeg" alt="Moment 9" class="absolute inset-0 w-full h-full object-cover transition-transform duration-700 transform group-hover:scale-110">
+                        <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-6">
+                            <span class="text-white font-bold tracking-widest text-sm">Moment 9</span>
+                        </div>
+                    </div>
+                    <div class="relative group overflow-hidden rounded-2xl h-52 md:h-64 w-full animate-[float_9s_ease-in-out_infinite]">
+                        <img src="Images/image10.jpeg" alt="Moment 10" class="absolute inset-0 w-full h-full object-cover transition-transform duration-700 transform group-hover:scale-110">
+                        <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-6">
+                            <span class="text-white font-bold tracking-widest text-sm">Moment 10</span>
+                        </div>
+                    </div>
+                    <div class="relative group overflow-hidden rounded-2xl h-52 md:h-64 w-full animate-[float_6s_ease-in-out_infinite]">
+                        <img src="Images/image11.jpeg" alt="Moment 11" class="absolute inset-0 w-full h-full object-cover transition-transform duration-700 transform group-hover:scale-110">
+                        <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-6">
+                            <span class="text-white font-bold tracking-widest text-sm">Moment 11</span>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- ============================================= -->
+    <!-- STARTUP SCHOOL SECTION                        -->
+    <!-- ============================================= -->
+    <section id="startup-school" class="py-24 bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 text-gray-900 dark:text-white relative border-t border-gray-200 dark:border-gray-900 transition-colors duration-300">
+        <div class="absolute top-0 right-0 w-96 h-96 bg-orange-500/5 rounded-full blur-3xl pointer-events-none"></div>
+        <div class="absolute bottom-0 left-0 w-96 h-96 bg-cyan-500/5 rounded-full blur-3xl pointer-events-none"></div>
+
+        <div class="max-w-7xl mx-auto px-6 relative z-10">
+            <div class="text-center mb-20">
+                <span class="text-xs font-bold text-orange-600 dark:text-orange-400 uppercase tracking-[0.3em] border border-orange-200 dark:border-orange-900 px-4 py-2 rounded-full">🚀 Learning Hub</span>
+                <h2 class="text-4xl md:text-6xl font-black mt-6 uppercase tracking-tighter">StartUp School</h2>
+                <p class="text-gray-600 dark:text-gray-400 mt-4 max-w-2xl mx-auto">My learnings, insights, and lessons from the startup journey. Real experiences that can help you build smarter.</p>
+            </div>
+
+            <!-- Insights Grid -->
+            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <!-- Insight 1 -->
+                <div class="bg-white dark:bg-gray-900/50 backdrop-blur border border-gray-200 dark:border-gray-800 rounded-xl p-8 hover:border-orange-400 dark:hover:border-orange-500 transition-all duration-300 hover:shadow-lg dark:hover:shadow-orange-900/20 group">
+                    <div class="w-12 h-12 bg-gradient-to-br from-orange-400 to-orange-600 rounded-lg flex items-center justify-center text-white text-xl mb-6 group-hover:scale-110 transition-transform">
+                        💡
+                    </div>
+                    <h3 class="text-xl font-bold mb-3 text-gray-900 dark:text-white">Ideas Vs Execution</h3>
+                    <p class="text-gray-700 dark:text-gray-300 leading-relaxed mb-4">Your idea is worth 1%. Execution is worth 99%. I've learned that the best idea with mediocre execution loses to a decent idea with flawless execution every single time.</p>
+                    <p class="text-xs text-orange-600 dark:text-orange-400 font-bold uppercase tracking-widest">Key Lesson: Start small, iterate fast</p>
+                </div>
+
+                <!-- Insight 2 -->
+                <div class="bg-white dark:bg-gray-900/50 backdrop-blur border border-gray-200 dark:border-gray-800 rounded-xl p-8 hover:border-blue-400 dark:hover:border-blue-500 transition-all duration-300 hover:shadow-lg dark:hover:shadow-blue-900/20 group">
+                    <div class="w-12 h-12 bg-gradient-to-br from-blue-400 to-blue-600 rounded-lg flex items-center justify-center text-white text-xl mb-6 group-hover:scale-110 transition-transform">
+                        👥
+                    </div>
+                    <h3 class="text-xl font-bold mb-3 text-gray-900 dark:text-white">Build with Your Team</h3>
+                    <p class="text-gray-700 dark:text-gray-300 leading-relaxed mb-4">You can't build a successful startup alone. Find co-founders who complement your skills, share your vision, and push you to be better. Great teams build great products.</p>
+                    <p class="text-xs text-blue-600 dark:text-blue-400 font-bold uppercase tracking-widest">Key Lesson: Culture beats everything</p>
+                </div>
+
+                <!-- Insight 3 -->
+                <div class="bg-white dark:bg-gray-900/50 backdrop-blur border border-gray-200 dark:border-gray-800 rounded-xl p-8 hover:border-purple-400 dark:hover:border-purple-500 transition-all duration-300 hover:shadow-lg dark:hover:shadow-purple-900/20 group">
+                    <div class="w-12 h-12 bg-gradient-to-br from-purple-400 to-purple-600 rounded-lg flex items-center justify-center text-white text-xl mb-6 group-hover:scale-110 transition-transform">
+                        📊
+                    </div>
+                    <h3 class="text-xl font-bold mb-3 text-gray-900 dark:text-white">Metrics Drive Decisions</h3>
+                    <p class="text-gray-700 dark:text-gray-300 leading-relaxed mb-4">Don't rely on gut feelings. Track everything. Your user engagement, churn rate, CAC (Customer Acquisition Cost), and retention metrics tell the real story of your business.</p>
+                    <p class="text-xs text-purple-600 dark:text-purple-400 font-bold uppercase tracking-widest">Key Lesson: Data > Opinions</p>
+                </div>
+
+                <!-- Insight 4 -->
+                <div class="bg-white dark:bg-gray-900/50 backdrop-blur border border-gray-200 dark:border-gray-800 rounded-xl p-8 hover:border-pink-400 dark:hover:border-pink-500 transition-all duration-300 hover:shadow-lg dark:hover:shadow-pink-900/20 group">
+                    <div class="w-12 h-12 bg-gradient-to-br from-pink-400 to-pink-600 rounded-lg flex items-center justify-center text-white text-xl mb-6 group-hover:scale-110 transition-transform">
+                        🎯
+                    </div>
+                    <h3 class="text-xl font-bold mb-3 text-gray-900 dark:text-white">Focus is a Superpower</h3>
+                    <p class="text-gray-700 dark:text-gray-300 leading-relaxed mb-4">Everyone wants to build 10 features. Winners build 1 feature really well. Say no to 90% of ideas and go all-in on the 10% that matters most to your users.</p>
+                    <p class="text-xs text-pink-600 dark:text-pink-400 font-bold uppercase tracking-widest">Key Lesson: Do one thing better</p>
+                </div>
+
+                <!-- Insight 5 -->
+                <div class="bg-white dark:bg-gray-900/50 backdrop-blur border border-gray-200 dark:border-gray-800 rounded-xl p-8 hover:border-green-400 dark:hover:border-green-500 transition-all duration-300 hover:shadow-lg dark:hover:shadow-green-900/20 group">
+                    <div class="w-12 h-12 bg-gradient-to-br from-green-400 to-green-600 rounded-lg flex items-center justify-center text-white text-xl mb-6 group-hover:scale-110 transition-transform">
+                        🔄
+                    </div>
+                    <h3 class="text-xl font-bold mb-3 text-gray-900 dark:text-white">Iterate, Don't Iterate</h3>
+                    <p class="text-gray-700 dark:text-gray-300 leading-relaxed mb-4">Fast iteration is important, but not without feedback. Collect user feedback, analyze what works, and iterate with purpose. Random changes waste time and resources.</p>
+                    <p class="text-xs text-green-600 dark:text-green-400 font-bold uppercase tracking-widest">Key Lesson: Feedback loop is everything</p>
+                </div>
+
+                <!-- Insight 6 -->
+                <div class="bg-white dark:bg-gray-900/50 backdrop-blur border border-gray-200 dark:border-gray-800 rounded-xl p-8 hover:border-cyan-400 dark:hover:border-cyan-500 transition-all duration-300 hover:shadow-lg dark:hover:shadow-cyan-900/20 group">
+                    <div class="w-12 h-12 bg-gradient-to-br from-cyan-400 to-cyan-600 rounded-lg flex items-center justify-center text-white text-xl mb-6 group-hover:scale-110 transition-transform">
+                        💰
+                    </div>
+                    <h3 class="text-xl font-bold mb-3 text-gray-900 dark:text-white">Unit Economics Matter</h3>
+                    <p class="text-gray-700 dark:text-gray-300 leading-relaxed mb-4">You can't scale a broken business model. If you're losing money on every customer, more customers = more losses. Get unit economics right first, then scale.</p>
+                    <p class="text-xs text-cyan-600 dark:text-cyan-400 font-bold uppercase tracking-widest">Key Lesson: Profitability first</p>
+                </div>
+            </div>
+
+            <!-- Call to Action & Learning Resources -->
+            <div class="mt-24 pt-20 border-t border-gray-300 dark:border-gray-800">
+
+                <!-- StartUp Stories & Articles Section -->
+                <div id="startup-articles">
+                    <div class="text-center mb-16">
+                        <h3 class="text-3xl md:text-4xl font-bold mb-4">StartUp Stories & Insights</h3>
+                        <p class="text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">Blog articles and stories sharing what I've learned from books, videos, and founder experiences. Real insights for aspiring entrepreneurs.</p>
+                    </div>
+
+                    <!-- Articles Grid -->
+                    <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                        <!-- Article 1 -->
+                        <a href="article1.html" class="bg-white dark:bg-gray-900/50 backdrop-blur border border-gray-200 dark:border-gray-800 rounded-xl overflow-hidden hover:border-blue-400 dark:hover:border-blue-500 transition-all duration-300 hover:shadow-lg dark:hover:shadow-blue-900/20 group block">
+                            <div class="h-48 bg-gradient-to-br from-blue-400 to-blue-600 relative overflow-hidden">
+                                <div class="absolute inset-0 flex items-center justify-center">
+                                    <span class="text-6xl group-hover:scale-110 transition-transform">💡</span>
+                                </div>
+                            </div>
+                            <div class="p-6">
+                                <span class="text-xs font-bold text-blue-600 dark:text-blue-400 uppercase tracking-widest">Lesson</span>
+                                <h4 class="text-xl font-bold mt-2 mb-3 text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">The 1% Better Rule: How Small Changes Compound</h4>
+                                <p class="text-gray-600 dark:text-gray-400 text-sm mb-4 line-clamp-3">Inspired by Atomic Habits - Learn how making 1% improvements every day leads to massive results over time. From the book by James Clear.</p>
+                                <div class="flex items-center justify-between pt-4 border-t border-gray-200 dark:border-gray-700">
+                                    <span class="text-xs text-gray-500 dark:text-gray-500">5 min read</span>
+                                    <span class="text-blue-500 font-bold text-sm group-hover:translate-x-1 transition-transform">→</span>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+
+                    <!-- View All Articles CTA -->
+                    <div class="text-center mt-16">
+                        <button class="px-8 py-3 bg-gradient-to-r from-orange-500 to-pink-600 text-white font-bold rounded-lg hover:shadow-lg transition-all duration-300 hover:scale-105">
+                            Read More Articles
+                        </button>
+                    </div>
+                </div>
+            </div>
+    
+    <!-- Home Footer -->
+    <footer class="bg-gray-50 dark:bg-black py-20 border-t border-gray-200 dark:border-gray-900 text-black dark:text-white z-10 relative transition-colors duration-300">
+        <div class="max-w-7xl mx-auto px-6">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-12 mb-16">
+                <!-- Brand -->
+                <div class="space-y-4">
+                    <h2 class="text-2xl font-black tracking-tighter">RAZ NOTES</h2>
+                    <p class="text-gray-500 text-sm leading-relaxed">
+                        Documenting the journey of Innovation & Growth. 
+                        Architecting the Intelligence of Tomorrow.
+                    </p>
+                    <div class="flex space-x-4 pt-2">
+                        <a href="https://www.linkedin.com/in/rowdraraz-paul-511a3a374/" target="_blank" class="text-gray-400 hover:text-blue-500 transition-colors"><i data-lucide="linkedin" class="w-5 h-5"></i></a>
+                        <a href="https://github.com/Rowdraraz100" target="_blank" class="text-gray-400 hover:text-gray-100 transition-colors"><i data-lucide="github" class="w-5 h-5"></i></a>
+                        <a href="#" class="text-gray-400 hover:text-red-500 transition-colors"><i data-lucide="youtube" class="w-5 h-5"></i></a>
+                        <a href="https://x.com/RowdrarazP" target="_blank" class="text-gray-400 hover:text-blue-400 transition-colors"><i data-lucide="twitter" class="w-5 h-5"></i></a>
+                    </div>
+                </div>
+
+                <!-- Navigation -->
+                <div>
+                    <h3 class="font-bold text-sm uppercase tracking-widest mb-6 text-gray-400">Navigation</h3>
+                    <ul class="space-y-3 text-sm font-medium">
+                        <li><a href="#vision" class="hover:text-blue-500 transition-colors">Vision & Mission</a></li>
+                        <li><a href="#habit-tracker" class="hover:text-blue-500 transition-colors">System Activity</a></li>
+                        <li><a href="#blogs" class="hover:text-blue-500 transition-colors">Engineering Logs</a></li>
+                        <li><a href="#books-club" class="hover:text-blue-500 transition-colors">Books Club</a></li>
+                        <li><a href="#startup-school" class="hover:text-blue-500 transition-colors">StartUp School</a></li>
+                    </ul>
+                </div>
+
+                <!-- Legal/Contact -->
+                <div>
+                    <h3 class="font-bold text-sm uppercase tracking-widest mb-6 text-gray-400">Connect</h3>
+                    <ul class="space-y-3 text-sm font-medium text-gray-500">
+                        <li><a href="mailto:rowdrarazofficial2002@gmail.com" class="hover:text-black dark:hover:text-white transition-colors">rowdrarazofficial2002@gmail.com</a></li>
+                        <li>Rajshahi, Bangladesh</li>
+                        <li><a href="#" class="hover:text-black dark:hover:text-white transition-colors">Privacy Policy</a></li>
+                        <li><a href="#" class="hover:text-black dark:hover:text-white transition-colors">Terms of Service</a></li>
+                    </ul>
+                </div>
+
+                <!-- Newsletter -->
+                <div>
+                    <h3 class="font-bold text-sm uppercase tracking-widest mb-6 text-gray-400">Stay Updated</h3>
+                    <p class="text-gray-500 text-xs mb-4">Join the inner circle. No spam, just progress.</p>
+                    <div class="flex flex-col gap-2">
+                        <input type="email" placeholder="Enter your email" class="bg-gray-200 dark:bg-gray-900 border border-gray-300 dark:border-gray-800 rounded px-4 py-2 text-sm focus:outline-none focus:border-blue-500 transition-colors text-black dark:text-white placeholder-gray-500">
+                        <button class="bg-black dark:bg-white text-white dark:text-black font-bold text-xs uppercase tracking-widest py-2 rounded hover:opacity-80 transition-opacity">
+                            Subscribe
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bottom Bar -->
+            <div class="border-t border-gray-200 dark:border-gray-900 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
+                <p class="text-gray-500 text-xs uppercase tracking-widest">© 2026-2035 Raz Notes. All rights reserved.</p>
+                <p class="text-gray-600 dark:text-gray-400 text-xs font-serif italic">"To infinity and beyond."</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- External JavaScript -->
+    <script src="logic.js"></script>
+</body>
+</html>
